@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 
-export default function Character() {
+export default function Character({ nickname }) {
   const [position, setPosition] = useState({ top: 50, left: 50 });
   const [direction, setDirection] = useState("down");
   const [isWalking, setIsWalking] = useState(false);
@@ -273,17 +273,17 @@ export default function Character() {
   };
 
   return (
-    <svg
-      width={characterSize}
-      height={characterSize}
-      style={{
-        position: "absolute",
-        top: `${position.top}px`,
-        left: `${position.left}px`,
-      }}
-      viewBox="0 0 50 50"
+    <div
+      style={{ position: "absolute", top: position.top, left: position.left }}
     >
-      {renderCharacter()}
-    </svg>
+      <svg width="50" height="50" viewBox="0 0 50 50">
+        {renderCharacter()}
+      </svg>
+      {nickname && (
+        <div style={{ textAlign: "center", marginTop: "-10px", color: "#000" }}>
+          {nickname}
+        </div>
+      )}
+    </div>
   );
 }
