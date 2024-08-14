@@ -13,7 +13,11 @@ export default function CreateWalletButton({ onWalletCreated }) {
   };
 
   return (
-    <button onClick={handleCreateWallet} disabled={loading}>
+    <button
+      onClick={handleCreateWallet}
+      disabled={loading}
+      style={{ float: "right" }}
+    >
       {loading ? "Creating Wallet..." : "Create Wallet"}
     </button>
   );
