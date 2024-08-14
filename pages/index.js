@@ -1,6 +1,5 @@
 import { useState } from "react";
 import CreateWalletButton from "../components/CreateWalletButton";
-import WalletInfo from "../components/WalletInfo";
 import WalletLogin from "../components/WalletLogin";
 import Character from "../components/Character";
 import FloatingButton from "../components/FloatingButton";
@@ -11,12 +10,10 @@ export default function Home() {
   const [showCharacter, setShowCharacter] = useState(false);
   const [nickname, setNickname] = useState("");
   const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
-  const [showWalletInfo, setShowWalletInfo] = useState(false);
 
   const handleWalletConnected = async (wallet) => {
     setWallet(wallet); // 지갑 연결 후 지갑 정보를 저장
     setShowCharacter(true); // 로그인 후 캐릭터 표시
-    setShowWalletInfo(true); // 지갑 정보 모달 표시
 
     // 지갑 주소에 해당하는 닉네임을 서버에서 불러오기
     const response = await fetch("/api/getNickname", {
@@ -35,8 +32,10 @@ export default function Home() {
     }
   };
 
-  const handleWalletClose = () => {
-    setShowWalletInfo(false); // 지갑 정보 모달을 숨기기만 하고, 지갑 정보는 유지
+  const handleLogout = () => {
+    setShowCharacter(false); // 로그아웃 시 캐릭터 숨기기
+    setWallet(null);
+    setNickname("");
   };
 
   const handleNicknameClick = () => {
@@ -50,32 +49,20 @@ export default function Home() {
     setIsNicknameModalOpen(false);
   };
 
-  const handleLogout = () => {
-    setShowCharacter(false); // 로그아웃 시 캐릭터 숨기기
-    setWallet(null);
-    setNickname("");
-  };
-
   return (
     <div>
       <div id="header">
-        <div style={{ display: "flex" }}>
-          <div id="title">FORI</div>
-          <span style={{ marginLeft: "5px" }}>XRPL</span>
-        </div>
+        <div id="title">XRPL</div>
         <div id="auth">
           <WalletLogin
             onWalletConnected={handleWalletConnected}
             onLogout={handleLogout}
           />
-          <CreateWalletButton onWalletCreated={setWallet} />
+          {!wallet && <CreateWalletButton onWalletCreated={setWallet} />}
         </div>
       </div>
-      {showWalletInfo && (
-        <WalletInfo wallet={wallet} onClose={handleWalletClose} />
-      )}
       {showCharacter && <Character nickname={nickname} />}
-      <FloatingButton onNicknameClick={handleNicknameClick} />
+      {wallet && <FloatingButton onNicknameClick={handleNicknameClick} />}
       {isNicknameModalOpen && (
         <NicknameModal onClose={handleNicknameClose} wallet={wallet} />
       )}

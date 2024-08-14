@@ -1,4 +1,6 @@
 body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f9;
   margin: 0;
   padding: 0;
 }
@@ -8,13 +10,43 @@ body {
 #header {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background-color: #007bff;
+  color: white;
+  font-size: 24px;
 }
 
 #title {
-  font-size: xx-large;
+  font-weight: bold;
 }
 
-/* WalletInfo.js */
+#auth {
+  display: flex;
+  gap: 15px;
+}
+
+button {
+  padding: 10px 15px;
+  font-size: 16px;
+  color: white;
+  background-color: #007bff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+input[type="text"] {
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  margin-right: 10px;
+}
 
 #wallet-info {
   position: fixed;
@@ -28,6 +60,7 @@ body {
   position: fixed;
   bottom: 20px;
   right: 20px;
+  z-index: 1000;
 }
 
 .floating-button {
@@ -39,6 +72,10 @@ body {
   border: none;
   font-size: 24px;
   cursor: pointer;
+}
+
+.floating-button:hover {
+  background-color: #0056b3;
 }
 
 .floating-menu {
