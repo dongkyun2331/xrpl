@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import CreateWalletButton from "../components/CreateWalletButton";
 import WalletInfo from "../components/WalletInfo";
 import WalletLogin from "../components/WalletLogin";
@@ -50,12 +50,24 @@ export default function Home() {
     setIsNicknameModalOpen(false);
   };
 
+  const handleLogout = () => {
+    setShowCharacter(false); // 로그아웃 시 캐릭터 숨기기
+    setWallet(null);
+    setNickname("");
+  };
+
   return (
     <div>
       <div id="header">
-        <div id="title">XRPL</div>
+        <div style={{ display: "flex" }}>
+          <div id="title">FORI</div>
+          <span style={{ marginLeft: "5px" }}>XRPL</span>
+        </div>
         <div id="auth">
-          <WalletLogin onWalletConnected={handleWalletConnected} />
+          <WalletLogin
+            onWalletConnected={handleWalletConnected}
+            onLogout={handleLogout}
+          />
           <CreateWalletButton onWalletCreated={setWallet} />
         </div>
       </div>

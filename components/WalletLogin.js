@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Wallet, Client } from "xrpl";
 
-export default function WalletLogin({ onWalletConnected }) {
+export default function WalletLogin({ onWalletConnected, onLogout }) {
   const [secretKey, setSecretKey] = useState("");
   const [walletAddress, setWalletAddress] = useState(null);
   const [walletBalance, setWalletBalance] = useState(null);
@@ -46,6 +46,13 @@ export default function WalletLogin({ onWalletConnected }) {
     }
   };
 
+  const handleLogout = () => {
+    setWalletAddress(null);
+    setWalletBalance(null);
+    setSecretKey("");
+    if (onLogout) onLogout();
+  };
+
   return (
     <div>
       {!walletAddress ? (
@@ -63,16 +70,9 @@ export default function WalletLogin({ onWalletConnected }) {
         </div>
       ) : (
         <div>
-          <strong>Address:</strong> {walletAddress}
-          <strong>Balance:</strong> {walletBalance} XRP
-          <button
-            onClick={() => {
-              setWalletAddress(null);
-              setWalletBalance(null);
-            }}
-          >
-            Logout
-          </button>
+          <strong>Address:</strong> {walletAddress} <br />
+          <strong>Balance:</strong> {walletBalance} XRP <br />
+          <button onClick={handleLogout}>Logout</button>
         </div>
       )}
     </div>
