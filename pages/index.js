@@ -67,7 +67,10 @@ export default function Home() {
   return (
     <div>
       <div id="header">
-        <div id="title">XRPL</div>
+        <div style={{ display: "flex" }}>
+          <div id="title">FORI</div>
+          <span style={{ marginLeft: "5px" }}>XRPL</span>
+        </div>
         <div id="auth">
           <WalletLogin
             onWalletConnected={handleWalletConnected}
