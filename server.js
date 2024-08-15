@@ -53,6 +53,14 @@ io.on("connection", (socket) => {
     }
   });
 
+  // 채팅 메시지를 받으면 모든 클라이언트에게 전송
+  socket.on("sendMessage", (message) => {
+    io.emit("receiveMessage", {
+      user: players[socket.id]?.nickname || "Unknown",
+      text: message,
+    });
+  });
+
   socket.on("disconnect", () => {
     console.log("user disconnected: " + socket.id);
     delete players[socket.id];

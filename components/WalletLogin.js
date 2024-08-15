@@ -70,8 +70,10 @@ export default function WalletLogin({ onWalletConnected, onLogout }) {
         </div>
       ) : (
         <div style={{ display: "flex" }}>
-          <div style={{ marginLeft: "10px" }}>Address: {walletAddress}</div>
-          <div style={{ marginLeft: "10px" }}>Balance: {walletBalance} XRP</div>
+          <div style={{ padding: "10px 15px" }}>Address: {walletAddress}</div>
+          <div style={{ padding: "10px 15px" }}>
+            Balance: {walletBalance} XRP
+          </div>
           <button onClick={handleLogout}>Logout</button>
         </div>
       )}

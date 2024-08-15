@@ -1,3 +1,4 @@
+// pages/index.js (Home 컴포넌트 수정)
 import { useState, useEffect } from "react";
 import io from "socket.io-client";
 import CreateWalletButton from "../components/CreateWalletButton";
@@ -5,8 +6,9 @@ import WalletLogin from "../components/WalletLogin";
 import Character from "../components/Character";
 import FloatingButton from "../components/FloatingButton";
 import NicknameModal from "../components/NicknameModal";
+import Chat from "../components/Chat";
 
-// 소켓을 초기화합니다. 이 변수는 컴포넌트가 마운트될 때 초기화됩니다.
+// 소켓을 초기화합니다.
 const socket = io("http://localhost:3001");
 
 export default function Home() {
@@ -16,11 +18,9 @@ export default function Home() {
   const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
 
   useEffect(() => {
-    // 컴포넌트가 마운트되었을 때만 소켓 연결을 유지하기 위해 소켓을 설정합니다.
     if (socket) {
       socket.connect();
 
-      // 컴포넌트가 언마운트되면 소켓 연결을 끊습니다.
       return () => {
         socket.disconnect();
       };
@@ -81,6 +81,7 @@ export default function Home() {
       {isNicknameModalOpen && (
         <NicknameModal onClose={handleNicknameClose} wallet={wallet} />
       )}
+      {wallet && <Chat socket={socket} />} {/* 로그인 후 채팅 기능 표시 */}
     </div>
   );
 }
