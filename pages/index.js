@@ -1,9 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import io from "socket.io-client";
 import CreateWalletButton from "../components/CreateWalletButton";
 import WalletLogin from "../components/WalletLogin";
 import Character from "../components/Character";
 import FloatingButton from "../components/FloatingButton";
 import NicknameModal from "../components/NicknameModal";
+
+// 소켓을 초기화합니다. 이 변수는 컴포넌트가 마운트될 때 초기화됩니다.
+const socket = io("http://localhost:3001");
 
 export default function Home() {
   const [wallet, setWallet] = useState(null);
@@ -11,11 +15,22 @@ export default function Home() {
   const [nickname, setNickname] = useState("");
   const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
 
-  const handleWalletConnected = async (wallet) => {
-    setWallet(wallet); // 지갑 연결 후 지갑 정보를 저장
-    setShowCharacter(true); // 로그인 후 캐릭터 표시
+  useEffect(() => {
+    // 컴포넌트가 마운트되었을 때만 소켓 연결을 유지하기 위해 소켓을 설정합니다.
+    if (socket) {
+      socket.connect();
 
-    // 지갑 주소에 해당하는 닉네임을 서버에서 불러오기
+      // 컴포넌트가 언마운트되면 소켓 연결을 끊습니다.
+      return () => {
+        socket.disconnect();
+      };
+    }
+  }, []);
+
+  const handleWalletConnected = async (wallet) => {
+    setWallet(wallet);
+    setShowCharacter(true);
+
     const response = await fetch("/api/getNickname", {
       method: "POST",
       headers: {
@@ -28,12 +43,12 @@ export default function Home() {
       const data = await response.json();
       setNickname(data.nickname);
     } else {
-      setNickname(""); // 닉네임이 없으면 빈 문자열로 설정
+      setNickname("");
     }
   };
 
   const handleLogout = () => {
-    setShowCharacter(false); // 로그아웃 시 캐릭터 숨기기
+    setShowCharacter(false);
     setWallet(null);
     setNickname("");
   };
@@ -61,7 +76,7 @@ export default function Home() {
           {!wallet && <CreateWalletButton onWalletCreated={setWallet} />}
         </div>
       </div>
-      {showCharacter && <Character nickname={nickname} />}
+      {showCharacter && <Character nickname={nickname} socket={socket} />}
       {wallet && <FloatingButton onNicknameClick={handleNicknameClick} />}
       {isNicknameModalOpen && (
         <NicknameModal onClose={handleNicknameClose} wallet={wallet} />
