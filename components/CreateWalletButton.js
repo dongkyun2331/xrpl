@@ -1,4 +1,3 @@
-// components/CreateWalletButton.js
 import { useState } from "react";
 
 export default function CreateWalletButton({ onWalletCreated }) {
@@ -6,10 +5,25 @@ export default function CreateWalletButton({ onWalletCreated }) {
 
   const handleCreateWallet = async () => {
     setLoading(true);
-    const res = await fetch("/api/createWallet");
-    const data = await res.json();
-    onWalletCreated(data); // 지갑 생성 후 부모 컴포넌트에 결과 전달
-    setLoading(false);
+    try {
+      const res = await fetch("/api/createWallet", {
+        method: "POST", // POST 요청 사용
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to create wallet");
+      }
+
+      const data = await res.json();
+      onWalletCreated(data); // 지갑 생성 후 부모 컴포넌트에 결과 전달
+    } catch (error) {
+      console.error("Error creating wallet:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

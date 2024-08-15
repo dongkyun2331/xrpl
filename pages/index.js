@@ -26,28 +26,9 @@ export default function Home() {
     }
   }, []);
 
-  const handleWalletConnected = async (wallet) => {
-    setWallet(wallet);
+  const handleWalletCreated = (newWallet) => {
+    setWallet(newWallet);
     setShowCharacter(true);
-
-    try {
-      const response = await fetch("/api/getNickname", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ address: wallet.address }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setNickname(data.nickname);
-      } else {
-        setNickname("");
-      }
-    } catch (error) {
-      console.error("Error fetching nickname:", error);
-    }
   };
 
   const handleLogout = () => {
@@ -76,10 +57,12 @@ export default function Home() {
         </div>
         <div id="auth">
           <WalletLogin
-            onWalletConnected={handleWalletConnected}
+            onWalletConnected={handleWalletCreated}
             onLogout={handleLogout}
           />
-          {!wallet && <CreateWalletButton onWalletCreated={setWallet} />}
+          {!wallet && (
+            <CreateWalletButton onWalletCreated={handleWalletCreated} />
+          )}
         </div>
       </div>
       {showCharacter && <Character nickname={nickname} socket={socket} />}
