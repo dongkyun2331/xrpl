@@ -8,7 +8,7 @@ import NicknameModal from "../components/NicknameModal";
 import Chat from "../components/Chat";
 
 // 소켓을 초기화합니다.
-const socket = io("https://forixrpl-server.duckdns.org:3001");
+const socket = io("wss://forixrpl-server.duckdns.org:3001");
 
 export default function Home() {
   const [wallet, setWallet] = useState(null);
