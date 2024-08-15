@@ -5,7 +5,7 @@ export default function NicknameModal({ onClose, wallet }) {
   const [error, setError] = useState("");
 
   const handleSave = async () => {
-    const response = await fetch("/api/saveNickname", {
+    const response = await fetch("/api/getNickname", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
