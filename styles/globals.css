@@ -59,7 +59,7 @@ input[type="text"] {
 
 .floating-container {
   position: fixed;
-  bottom: 60px;
+  bottom: 250px;
   right: 10px;
   z-index: 1000;
 }

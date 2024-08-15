@@ -3,6 +3,10 @@ import { useState, useEffect, useRef } from "react";
 export default function Chat({ socket }) {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
+  const [height, setHeight] = useState(150); // 초기 채팅창 높이 설정
+  const isResizingRef = useRef(false);
+  const startYRef = useRef(0);
+  const startHeightRef = useRef(0);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -20,7 +24,6 @@ export default function Chat({ socket }) {
   }, [socket]);
 
   useEffect(() => {
-    // 메시지가 추가될 때마다 스크롤을 가장 아래로 이동
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
@@ -37,8 +40,37 @@ export default function Chat({ socket }) {
     }
   };
 
+  const startResizing = (e) => {
+    isResizingRef.current = true;
+    startYRef.current = e.clientY;
+    startHeightRef.current = height;
+  };
+
+  const resize = (e) => {
+    if (isResizingRef.current) {
+      const newHeight =
+        startHeightRef.current - (e.clientY - startYRef.current);
+      setHeight(Math.max(newHeight, 100)); // 최소 높이를 100px로 설정
+    }
+  };
+
+  const stopResizing = () => {
+    isResizingRef.current = false;
+  };
+
+  useEffect(() => {
+    window.addEventListener("mousemove", resize);
+    window.addEventListener("mouseup", stopResizing);
+
+    return () => {
+      window.removeEventListener("mousemove", resize);
+      window.removeEventListener("mouseup", stopResizing);
+    };
+  }, []);
+
   return (
-    <div className="chat-container">
+    <div className="chat-container" style={{ height: `${height}px` }}>
+      <div className="resize-handle" onMouseDown={startResizing}></div>
       <div className="chat-messages">
         {messages.map(
           (msg, index) =>
@@ -67,12 +99,20 @@ export default function Chat({ socket }) {
           bottom: 0;
           left: 0;
           right: 0;
-          background-color: rgba(241, 241, 241, 0.8); /* 반투명 배경 */
-          padding: 10px;
+          background-color: rgba(241, 241, 241, 0.8);
+          padding: 0 10ox 10px 10px;
           border-top: 1px solid #ccc;
+          display: flex;
+          flex-direction: column;
+        }
+        .resize-handle {
+          height: 1px;
+          background-color: #ccc;
+          cursor: ns-resize;
+          margin-bottom: 5px;
         }
         .chat-messages {
-          max-height: 150px; /* 채팅창 크기 제한 */
+          flex: 1;
           overflow-y: auto;
           margin-bottom: 10px;
         }
