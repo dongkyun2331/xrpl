@@ -5,20 +5,24 @@ export default function NicknameModal({ onClose, wallet }) {
   const [error, setError] = useState("");
 
   const handleSave = async () => {
-    const response = await fetch("/api/getNickname", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ nickname, address: wallet?.address }),
-    });
+    try {
+      const response = await fetch("/api/getNickname", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ nickname, address: wallet?.address }),
+      });
 
-    const data = await response.json();
-
-    if (response.status === 200) {
-      onClose(nickname);
-    } else {
-      setError(data.message);
+      if (response.ok) {
+        onClose(nickname);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.message);
+      }
+    } catch (error) {
+      console.error("Error saving nickname:", error);
+      setError("An unexpected error occurred.");
     }
   };
 

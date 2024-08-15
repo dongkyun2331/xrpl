@@ -1,4 +1,3 @@
-// pages/index.js (Home 컴포넌트 수정)
 import { useState, useEffect } from "react";
 import io from "socket.io-client";
 import CreateWalletButton from "../components/CreateWalletButton";
@@ -31,19 +30,23 @@ export default function Home() {
     setWallet(wallet);
     setShowCharacter(true);
 
-    const response = await fetch("/api/getNickname", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ address: wallet.address }),
-    });
+    try {
+      const response = await fetch("/api/getNickname", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ address: wallet.address }),
+      });
 
-    if (response.ok) {
-      const data = await response.json();
-      setNickname(data.nickname);
-    } else {
-      setNickname("");
+      if (response.ok) {
+        const data = await response.json();
+        setNickname(data.nickname);
+      } else {
+        setNickname("");
+      }
+    } catch (error) {
+      console.error("Error fetching nickname:", error);
     }
   };
 
