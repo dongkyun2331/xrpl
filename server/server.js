@@ -1,9 +1,15 @@
 const express = require("express");
-const http = require("http");
+const https = require("https");
 const { Server } = require("socket.io");
 const cors = require("cors");
+const fs = require("fs");
 
 const app = express();
+
+const options = {
+  key: fs.readFileSync("./privkey.pem"),
+  cert: fs.readFileSync("./fullchain.pem"),
+};
 
 app.use(
   cors({
@@ -12,7 +18,7 @@ app.use(
   })
 );
 
-const server = http.createServer(app);
+const server = https.createServer(options, app);
 const io = new Server(server, {
   cors: {
     origin: "https://forixrpl.vercel.app/",
@@ -67,6 +73,8 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(3001, () => {
-  console.log("listening on *:3001");
+const port = 3001;
+
+server.listen(port, () => {
+  console.log(`${port}`);
 });
