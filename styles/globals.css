@@ -3,6 +3,7 @@ body {
   background-color: #f4f4f9;
   margin: 0;
   padding: 0;
+  overflow: hidden;
 }
 
 /* index.js */
@@ -11,14 +12,14 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px;
+  height: 100px;
   background-color: #007bff;
   color: white;
-  font-size: 24px;
 }
 
 #title {
   font-weight: bold;
+  font-size: 24px;
 }
 
 #auth {

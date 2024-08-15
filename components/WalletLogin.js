@@ -69,9 +69,9 @@ export default function WalletLogin({ onWalletConnected, onLogout }) {
           {error && <p style={{ color: "red" }}>{error}</p>}
         </div>
       ) : (
-        <div>
-          <strong>Address:</strong> {walletAddress} <br />
-          <strong>Balance:</strong> {walletBalance} XRP <br />
+        <div style={{ display: "flex" }}>
+          <div style={{ marginLeft: "10px" }}>Address: {walletAddress}</div>
+          <div style={{ marginLeft: "10px" }}>Balance: {walletBalance} XRP</div>
           <button onClick={handleLogout}>Logout</button>
         </div>
       )}
