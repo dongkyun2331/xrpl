@@ -11,18 +11,21 @@ const options = {
   cert: fs.readFileSync("./fullchain.pem"),
 };
 
+// CORS 설정: 정확한 출처를 허용하도록 수정
 app.use(
   cors({
-    origin: "https://forixrpl.vercel.app/",
+    origin: "https://forixrpl.vercel.app", // 끝에 슬래시 제거
     methods: ["GET", "POST"],
+    credentials: true, // 쿠키를 사용한 인증이 필요한 경우에만 필요
   })
 );
 
 const server = https.createServer(options, app);
 const io = new Server(server, {
   cors: {
-    origin: "https://forixrpl.vercel.app/",
+    origin: "https://forixrpl.vercel.app", // 끝에 슬래시 제거
     methods: ["GET", "POST"],
+    credentials: true,
   },
 });
 
@@ -73,8 +76,6 @@ io.on("connection", (socket) => {
   });
 });
 
-const port = 3001;
-
-server.listen(port, () => {
-  console.log(`${port}`);
+server.listen(3001, () => {
+  console.log("listening on *:3001");
 });
