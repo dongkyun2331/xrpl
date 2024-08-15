@@ -5,7 +5,6 @@ const cors = require("cors");
 
 const app = express();
 
-// CORS 설정 추가
 app.use(
   cors({
     origin: "http://localhost:3000",
@@ -53,12 +52,12 @@ io.on("connection", (socket) => {
     }
   });
 
-  // 채팅 메시지를 받으면 모든 클라이언트에게 전송
   socket.on("sendMessage", (message) => {
     io.emit("receiveMessage", {
-      user: players[socket.id]?.nickname || "Unknown",
+      user: players[socket.id].nickname,
       text: message,
     });
+    io.emit("chatMessage", { playerId: socket.id, message });
   });
 
   socket.on("disconnect", () => {

@@ -36,6 +36,7 @@ export default function Chat({ socket }) {
         ...prevMessages,
         { user: "Me", text: message },
       ]);
+      socket.emit("chatMessage", { message });
       setMessage("");
     }
   };
@@ -100,13 +101,13 @@ export default function Chat({ socket }) {
           left: 0;
           right: 0;
           background-color: rgba(241, 241, 241, 0.8);
-          padding: 0 10ox 10px 10px;
+          padding: 0 10px 10px 10px;
           border-top: 1px solid #ccc;
           display: flex;
           flex-direction: column;
         }
         .resize-handle {
-          height: 1px;
+          height: 5px;
           background-color: #ccc;
           cursor: ns-resize;
           margin-bottom: 5px;

@@ -43,6 +43,37 @@ export default function Character({ nickname, socket }) {
           return newPlayers;
         });
       });
+
+      // 채팅 메시지를 받을 때
+      socket.on("chatMessage", ({ playerId, message }) => {
+        setPlayers((prev) => {
+          if (prev[playerId]) {
+            return {
+              ...prev,
+              [playerId]: {
+                ...prev[playerId],
+                bubbleMessage: message,
+              },
+            };
+          }
+          return prev;
+        });
+
+        setTimeout(() => {
+          setPlayers((prev) => {
+            if (prev[playerId]) {
+              return {
+                ...prev,
+                [playerId]: {
+                  ...prev[playerId],
+                  bubbleMessage: "", // 말풍선 메시지 삭제
+                },
+              };
+            }
+            return prev;
+          });
+        }, 3000); // 3초 후 말풍선 사라짐
+      });
     }
 
     return () => {
@@ -51,6 +82,7 @@ export default function Character({ nickname, socket }) {
         socket.off("newPlayer");
         socket.off("playerMoved");
         socket.off("playerDisconnected");
+        socket.off("chatMessage");
       }
     };
   }, [socket]);
@@ -362,6 +394,27 @@ export default function Character({ nickname, socket }) {
         <svg width="50" height="50" viewBox="0 0 50 50">
           {renderDirection()}
         </svg>
+        {player.bubbleMessage && (
+          <div
+            style={{
+              position: "absolute",
+              bottom: "100%",
+              left: "50%",
+              transform: "translateX(-50%)",
+              backgroundColor: "rgba(255, 255, 255, 0.8)",
+              padding: "5px 10px",
+              borderRadius: "10px",
+              marginBottom: "5px",
+              fontSize: "12px",
+              minWidth: "150px",
+              textAlign: "center",
+              whiteSpace: "normal", // 텍스트가 줄바꿈 되도록 설정
+              wordBreak: "break-word", // 단어가 너무 길 경우 줄바꿈
+            }}
+          >
+            {player.bubbleMessage}
+          </div>
+        )}
         {player.nickname && (
           <div
             style={{
