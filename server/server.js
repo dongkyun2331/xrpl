@@ -14,10 +14,10 @@ const options = {
   cert: fs.readFileSync("./fullchain.pem"),
 };
 
-// CORS 설정: 정확한 출처를 허용하도록 수정
+// CORS 설정
 app.use(
   cors({
-    origin: "https://forixrpl.vercel.app", // 끝에 슬래시 제거
+    origin: "https://forixrpl.vercel.app", // 정확한 출처를 허용
     methods: ["GET", "POST"],
     credentials: true, // 쿠키를 사용한 인증이 필요한 경우에만 필요
   })
@@ -62,7 +62,7 @@ app.post("/api/getNickname", async (req, res) => {
   }
 });
 
-// 닉네임 저장
+// 닉네임 저장 및 업데이트
 app.post("/api/saveNickname", async (req, res) => {
   const { nickname, address } = req.body;
 
@@ -75,23 +75,27 @@ app.post("/api/saveNickname", async (req, res) => {
   try {
     const connection = await mysql.createConnection(dbConfig);
 
-    // 닉네임 중복 검사
+    // 중복된 주소가 있는지 확인
     const [existingRows] = await connection.execute(
-      "SELECT nickname FROM nicknames WHERE nickname = ?",
-      [nickname]
+      "SELECT * FROM nicknames WHERE address = ?",
+      [address]
     );
 
     if (existingRows.length > 0) {
-      return res.status(400).json({ message: "Nickname already exists" });
+      // 이미 존재하는 주소가 있다면 닉네임을 업데이트합니다.
+      await connection.execute(
+        "UPDATE nicknames SET nickname = ? WHERE address = ?",
+        [nickname, address]
+      );
+      return res.status(200).json({ message: "Nickname updated successfully" });
+    } else {
+      // 새 주소라면 닉네임을 삽입합니다.
+      await connection.execute(
+        "INSERT INTO nicknames (address, nickname) VALUES (?, ?)",
+        [address, nickname]
+      );
+      return res.status(200).json({ message: "Nickname saved successfully" });
     }
-
-    // 닉네임 저장
-    await connection.execute(
-      "INSERT INTO nicknames (address, nickname) VALUES (?, ?)",
-      [address, nickname]
-    );
-
-    return res.status(200).json({ message: "Nickname saved successfully" });
   } catch (error) {
     console.error("Database error:", error);
     return res
@@ -128,7 +132,7 @@ app.post("/api/createWallet", async (req, res) => {
 const server = https.createServer(options, app);
 const io = new Server(server, {
   cors: {
-    origin: "https://forixrpl.vercel.app", // 끝에 슬래시 제거
+    origin: "https://forixrpl.vercel.app",
     methods: ["GET", "POST"],
     credentials: true,
   },

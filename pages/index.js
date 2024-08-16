@@ -9,28 +9,59 @@ import NicknameModal from "../components/NicknameModal";
 import Chat from "../components/Chat";
 
 // 소켓을 초기화합니다.
-const socket = io("https://forixrpl-server.duckdns.org:3001");
+const useSocket = (url) => {
+  const [socket, setSocket] = useState(null);
+
+  useEffect(() => {
+    const socketInstance = io(url, {
+      reconnection: true,
+      reconnectionAttempts: Infinity, // 무한 재연결 시도
+      reconnectionDelay: 1000, // 재연결 시도 간격 (1초)
+      reconnectionDelayMax: 5000, // 최대 재연결 간격 (5초)
+      timeout: 20000, // 연결 타임아웃 (20초)
+      transports: ["websocket"], // WebSocket을 우선 사용
+    });
+
+    socketInstance.on("connect", () => {
+      console.log("Connected to server");
+    });
+
+    socketInstance.on("disconnect", (reason) => {
+      console.log("Disconnected from server:", reason);
+      if (reason === "io server disconnect") {
+        // 서버 측에서 연결을 끊었을 경우 클라이언트에서 재연결 시도
+        socketInstance.connect();
+      }
+    });
+
+    socketInstance.on("reconnect_attempt", (attempt) => {
+      console.log(`Reconnect attempt ${attempt}`);
+    });
+
+    socketInstance.on("reconnect_error", (error) => {
+      console.error("Reconnect error:", error);
+    });
+
+    socketInstance.on("reconnect_failed", () => {
+      console.error("Failed to reconnect to server");
+    });
+
+    setSocket(socketInstance);
+
+    return () => {
+      socketInstance.disconnect();
+    };
+  }, [url]);
+
+  return socket;
+};
 
 export default function Home() {
+  const socket = useSocket("https://forixrpl-server.duckdns.org:3001");
   const [wallet, setWallet] = useState(null); // 지갑 정보 상태
   const [nickname, setNickname] = useState("");
   const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
   const [showWalletInfo, setShowWalletInfo] = useState(false); // WalletInfo 표시 여부
-
-  useEffect(() => {
-    if (socket) {
-      // 서버와의 연결이 끊어졌을 때 페이지를 새로고침
-      socket.on("disconnect", () => {
-        window.location.reload(); // 페이지 새로고침
-      });
-    }
-
-    return () => {
-      if (socket) {
-        socket.off("disconnect");
-      }
-    };
-  }, [socket]);
 
   const handleWalletCreated = (newWallet) => {
     setWallet(newWallet); // 새 지갑 생성 시 지갑 정보 설정
@@ -86,7 +117,7 @@ export default function Home() {
       <div id="header">
         <div style={{ display: "flex" }}>
           <div id="title">FORI</div>
-          <span style={{ marginLeft: "5px" }}>XRPL v1.0.10</span>
+          <span style={{ marginLeft: "5px" }}>XRPL v1.0.11</span>
         </div>
         <div id="auth">
           {wallet ? (

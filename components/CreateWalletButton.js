@@ -9,7 +9,7 @@ export default function CreateWalletButton({ onWalletCreated }) {
       const res = await fetch(
         "https://forixrpl-server.duckdns.org:3001/api/createWallet",
         {
-          method: "POST", // POST 요청 사용
+          method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
