@@ -16,6 +16,21 @@ export default function Home() {
   const [nickname, setNickname] = useState("");
   const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
 
+  useEffect(() => {
+    if (socket) {
+      // 서버와의 연결이 끊어졌을 때 로그아웃
+      socket.on("disconnect", () => {
+        handleLogout();
+      });
+    }
+
+    return () => {
+      if (socket) {
+        socket.off("disconnect");
+      }
+    };
+  }, [socket]);
+
   const handleWalletCreated = (newWallet) => {
     setWallet(newWallet);
     setNickname(newWallet.nickname || ""); // 닉네임을 상태에 설정합니다.
@@ -26,6 +41,9 @@ export default function Home() {
     setShowCharacter(false);
     setWallet(null);
     setNickname("");
+    if (socket) {
+      socket.disconnect();
+    }
   };
 
   const handleNicknameClick = () => {
@@ -44,7 +62,7 @@ export default function Home() {
       <div id="header">
         <div style={{ display: "flex" }}>
           <div id="title">FORI</div>
-          <span style={{ marginLeft: "5px" }}>XRPL v1.0.2</span>
+          <span style={{ marginLeft: "5px" }}>XRPL v1.0.3</span>
         </div>
         <div id="auth">
           <WalletLogin
