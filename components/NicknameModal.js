@@ -6,13 +6,17 @@ export default function NicknameModal({ onClose, wallet }) {
 
   const handleSave = async () => {
     try {
-      const response = await fetch("/api/getNickname", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ nickname, address: wallet?.address }),
-      });
+      // 서버의 전체 URL을 사용하여 API 요청을 보냅니다.
+      const response = await fetch(
+        "https://forixrpl-server.duckdns.org:3001/api/getNickname",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ nickname, address: wallet?.address }),
+        }
+      );
 
       if (response.ok) {
         onClose(nickname);

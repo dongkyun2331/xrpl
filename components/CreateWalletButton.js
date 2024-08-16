@@ -6,12 +6,15 @@ export default function CreateWalletButton({ onWalletCreated }) {
   const handleCreateWallet = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/createWallet", {
-        method: "POST", // POST 요청 사용
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      const res = await fetch(
+        "https://forixrpl-server.duckdns.org:3001/api/createWallet",
+        {
+          method: "POST", // POST 요청 사용
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       if (!res.ok) {
         throw new Error("Failed to create wallet");

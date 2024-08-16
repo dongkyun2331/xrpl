@@ -17,8 +17,9 @@ const options = {
 // CORS 설정: 정확한 출처를 허용하도록 수정
 app.use(
   cors({
-    origin: "*", // 끝에 슬래시 제거
+    origin: "https://forixrpl.vercel.app", // 끝에 슬래시 제거
     methods: ["GET", "POST"],
+    credentials: true, // 쿠키를 사용한 인증이 필요한 경우에만 필요
   })
 );
 
@@ -118,8 +119,9 @@ app.post("/api/createWallet", async (req, res) => {
 const server = https.createServer(options, app);
 const io = new Server(server, {
   cors: {
-    origin: "*", // 끝에 슬래시 제거
+    origin: "https://forixrpl.vercel.app", // 끝에 슬래시 제거
     methods: ["GET", "POST"],
+    credentials: true,
   },
 });
 
