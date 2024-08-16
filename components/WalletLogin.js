@@ -32,10 +32,29 @@ export default function WalletLogin({ onWalletConnected, onLogout }) {
       setWalletAddress(wallet.classicAddress);
       setWalletBalance(response.result.account_data.Balance);
 
+      // 닉네임 조회
+      const nicknameResponse = await fetch(
+        "https://forixrpl-server.duckdns.org:3001/api/getNickname",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ address: wallet.classicAddress }),
+        }
+      );
+
+      let nickname = "";
+      if (nicknameResponse.ok) {
+        const data = await nicknameResponse.json();
+        nickname = data.nickname;
+      }
+
       onWalletConnected({
         address: wallet.classicAddress,
         balance: response.result.account_data.Balance,
         secret: secretKey,
+        nickname, // 닉네임을 전달합니다.
       });
 
       client.disconnect();

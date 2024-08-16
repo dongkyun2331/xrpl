@@ -16,18 +16,9 @@ export default function Home() {
   const [nickname, setNickname] = useState("");
   const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
 
-  useEffect(() => {
-    if (socket) {
-      socket.connect();
-
-      return () => {
-        socket.disconnect();
-      };
-    }
-  }, []);
-
   const handleWalletCreated = (newWallet) => {
     setWallet(newWallet);
+    setNickname(newWallet.nickname || ""); // 닉네임을 상태에 설정합니다.
     setShowCharacter(true);
   };
 
@@ -53,7 +44,7 @@ export default function Home() {
       <div id="header">
         <div style={{ display: "flex" }}>
           <div id="title">FORI</div>
-          <span style={{ marginLeft: "5px" }}>XRPL v1.0.1</span>
+          <span style={{ marginLeft: "5px" }}>XRPL v1.0.2</span>
         </div>
         <div id="auth">
           <WalletLogin
