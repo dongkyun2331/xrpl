@@ -12,7 +12,7 @@ export default function WalletInfo({ wallet, onClose }) {
       <p>
         <strong>Balance:</strong> {wallet.balance} XRP
       </p>
-      <button onClick={onClose}>Close</button>
+      <button onClick={onClose}>Close</button> {/* 닫기 버튼 */}
     </div>
   );
 }

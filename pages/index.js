@@ -15,9 +15,11 @@ export default function Home() {
   const [wallet, setWallet] = useState(null); // 지갑 정보 상태
   const [nickname, setNickname] = useState("");
   const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
+  const [showWalletInfo, setShowWalletInfo] = useState(false); // WalletInfo 표시 여부
 
   const handleWalletCreated = (newWallet) => {
     setWallet(newWallet); // 새 지갑 생성 시 지갑 정보 설정
+    setShowWalletInfo(true); // 지갑 생성 후 WalletInfo 표시
   };
 
   const handleWalletConnected = (connectedWallet) => {
@@ -27,6 +29,7 @@ export default function Home() {
   const handleLogout = () => {
     setWallet(null);
     setNickname("");
+    setShowWalletInfo(false); // 로그아웃 시 WalletInfo 숨김
   };
 
   const handleNicknameClick = () => {
@@ -45,7 +48,7 @@ export default function Home() {
       <div id="header">
         <div style={{ display: "flex" }}>
           <div id="title">FORI</div>
-          <span style={{ marginLeft: "5px" }}>XRPL v1.0.7</span>
+          <span style={{ marginLeft: "5px" }}>XRPL v1.0.8</span>
         </div>
         <div id="auth">
           {wallet ? (
@@ -61,7 +64,12 @@ export default function Home() {
       {wallet && (
         <>
           <Character nickname={nickname} socket={socket} />
-          <WalletInfo wallet={wallet} onClose={() => setWallet(null)} />
+          {showWalletInfo && (
+            <WalletInfo
+              wallet={wallet}
+              onClose={() => setShowWalletInfo(false)}
+            />
+          )}
           <FloatingButton onNicknameClick={handleNicknameClick} />
           {isNicknameModalOpen && (
             <NicknameModal onClose={handleNicknameClose} wallet={wallet} />
