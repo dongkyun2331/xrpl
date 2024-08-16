@@ -31,8 +31,14 @@ export default function Character({ nickname, socket }) {
       socket.on("playerMoved", (player) => {
         setPlayers((prev) => ({
           ...prev,
-          [player.id]: player,
+          [player.id]: { ...player, isWalking: true },
         }));
+        setTimeout(() => {
+          setPlayers((prev) => ({
+            ...prev,
+            [player.id]: { ...player, isWalking: false },
+          }));
+        }, 200); // 잠시 후 걷기 동작 해제
       });
 
       // 플레이어가 나갔을 때
@@ -140,6 +146,7 @@ export default function Character({ nickname, socket }) {
     setDirection(newDirection);
     if (forceMove || newDirection === direction) {
       setPosition(newPosition);
+      setIsWalking(true); // 현재 플레이어가 걷는 상태로 설정
 
       if (socket) {
         socket.emit("move", {
@@ -205,17 +212,15 @@ export default function Character({ nickname, socket }) {
   };
 
   const renderCharacter = (player) => {
-    const isCurrentPlayer = player.id === socket.id;
-    const isWalking = player.x !== position.left || player.y !== position.top;
     const armTransform = `rotate(${getArmLegTransform(
       "arm",
       step,
-      isWalking
+      player.isWalking
     )} 14 24)`;
     const legTransform = `rotate(${getArmLegTransform(
       "leg",
       step,
-      isWalking
+      player.isWalking
     )} 20 50)`;
 
     const characterStyle = {
