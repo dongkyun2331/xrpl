@@ -1,10 +1,8 @@
 import { useState } from "react";
 import { Wallet, Client } from "xrpl";
 
-export default function WalletLogin({ onWalletConnected, onLogout }) {
-  const [secretKey, setSecretKey] = useState("");
-  const [walletAddress, setWalletAddress] = useState(null);
-  const [walletBalance, setWalletBalance] = useState(null);
+export default function WalletLogin({ onWalletConnected, wallet, onLogout }) {
+  const [secretKey, setSecretKey] = useState(wallet ? wallet.secret : "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -29,33 +27,13 @@ export default function WalletLogin({ onWalletConnected, onLogout }) {
         ledger_index: "validated",
       });
 
-      setWalletAddress(wallet.classicAddress);
-      setWalletBalance(response.result.account_data.Balance);
-
-      // 닉네임 조회
-      const nicknameResponse = await fetch(
-        "https://forixrpl-server.duckdns.org:3001/api/getNickname",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ address: wallet.classicAddress }),
-        }
-      );
-
-      let nickname = "";
-      if (nicknameResponse.ok) {
-        const data = await nicknameResponse.json();
-        nickname = data.nickname;
-      }
-
-      onWalletConnected({
+      const connectedWallet = {
         address: wallet.classicAddress,
         balance: response.result.account_data.Balance,
         secret: secretKey,
-        nickname, // 닉네임을 전달합니다.
-      });
+      };
+
+      onWalletConnected(connectedWallet); // 부모 컴포넌트에 연결된 지갑 정보 전달
 
       client.disconnect();
     } catch (err) {
@@ -66,36 +44,40 @@ export default function WalletLogin({ onWalletConnected, onLogout }) {
   };
 
   const handleLogout = () => {
-    setWalletAddress(null);
-    setWalletBalance(null);
     setSecretKey("");
     if (onLogout) onLogout();
   };
 
   return (
-    <div>
-      {!walletAddress ? (
-        <div>
+    <div style={{ display: "flex", alignItems: "center" }}>
+      {wallet ? (
+        <>
+          <div style={{ padding: "10px 15px" }}>Address: {wallet.address}</div>
+          <div style={{ padding: "10px 15px" }}>
+            Balance: {wallet.balance} XRP
+          </div>
+          <button onClick={handleLogout} disabled={loading}>
+            Logout
+          </button>
+        </>
+      ) : (
+        <>
           <input
             type="text"
             placeholder="Enter Secret Key"
             value={secretKey}
             onChange={(e) => setSecretKey(e.target.value)}
+            disabled={loading}
           />
-          <button onClick={handleConnectWallet} disabled={loading}>
+          <button
+            onClick={handleConnectWallet}
+            disabled={loading || !secretKey}
+          >
             {loading ? "Connecting..." : "Connect Wallet"}
           </button>
-          {error && <p style={{ color: "red" }}>{error}</p>}
-        </div>
-      ) : (
-        <div style={{ display: "flex" }}>
-          <div style={{ padding: "10px 15px" }}>Address: {walletAddress}</div>
-          <div style={{ padding: "10px 15px" }}>
-            Balance: {walletBalance} XRP
-          </div>
-          <button onClick={handleLogout}>Logout</button>
-        </div>
+        </>
       )}
+      {error && <p style={{ color: "red" }}>{error}</p>}
     </div>
   );
 }

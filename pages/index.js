@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import io from "socket.io-client";
 import CreateWalletButton from "../components/CreateWalletButton";
 import WalletLogin from "../components/WalletLogin";
 import Character from "../components/Character";
+import WalletInfo from "../components/WalletInfo";
 import FloatingButton from "../components/FloatingButton";
 import NicknameModal from "../components/NicknameModal";
 import Chat from "../components/Chat";
@@ -11,39 +12,21 @@ import Chat from "../components/Chat";
 const socket = io("https://forixrpl-server.duckdns.org:3001");
 
 export default function Home() {
-  const [wallet, setWallet] = useState(null);
-  const [showCharacter, setShowCharacter] = useState(false);
+  const [wallet, setWallet] = useState(null); // 지갑 정보 상태
   const [nickname, setNickname] = useState("");
   const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
 
-  useEffect(() => {
-    if (socket) {
-      // 서버와의 연결이 끊어졌을 때 페이지를 새로고침
-      socket.on("disconnect", () => {
-        window.location.reload(); // 페이지 새로고침
-      });
-    }
-
-    return () => {
-      if (socket) {
-        socket.off("disconnect");
-      }
-    };
-  }, [socket]);
-
   const handleWalletCreated = (newWallet) => {
-    setWallet(newWallet);
-    setNickname(newWallet.nickname || ""); // 닉네임을 상태에 설정합니다.
-    setShowCharacter(true);
+    setWallet(newWallet); // 새 지갑 생성 시 지갑 정보 설정
+  };
+
+  const handleWalletConnected = (connectedWallet) => {
+    setWallet(connectedWallet); // 기존 지갑 연결 시 지갑 정보 설정
   };
 
   const handleLogout = () => {
-    setShowCharacter(false);
     setWallet(null);
     setNickname("");
-    if (socket) {
-      socket.disconnect();
-    }
   };
 
   const handleNicknameClick = () => {
@@ -62,24 +45,30 @@ export default function Home() {
       <div id="header">
         <div style={{ display: "flex" }}>
           <div id="title">FORI</div>
-          <span style={{ marginLeft: "5px" }}>XRPL v1.0.6</span>
+          <span style={{ marginLeft: "5px" }}>XRPL v1.0.7</span>
         </div>
         <div id="auth">
-          <WalletLogin
-            onWalletConnected={handleWalletCreated}
-            onLogout={handleLogout}
-          />
-          {!wallet && (
-            <CreateWalletButton onWalletCreated={handleWalletCreated} />
+          {wallet ? (
+            <WalletLogin wallet={wallet} onLogout={handleLogout} />
+          ) : (
+            <>
+              <WalletLogin onWalletConnected={handleWalletConnected} />
+              <CreateWalletButton onWalletCreated={handleWalletCreated} />
+            </>
           )}
         </div>
       </div>
-      {showCharacter && <Character nickname={nickname} socket={socket} />}
-      {wallet && <FloatingButton onNicknameClick={handleNicknameClick} />}
-      {isNicknameModalOpen && (
-        <NicknameModal onClose={handleNicknameClose} wallet={wallet} />
+      {wallet && (
+        <>
+          <Character nickname={nickname} socket={socket} />
+          <WalletInfo wallet={wallet} onClose={() => setWallet(null)} />
+          <FloatingButton onNicknameClick={handleNicknameClick} />
+          {isNicknameModalOpen && (
+            <NicknameModal onClose={handleNicknameClose} wallet={wallet} />
+          )}
+          <Chat socket={socket} /> {/* 로그인 후 채팅 기능 표시 */}
+        </>
       )}
-      {wallet && <Chat socket={socket} />} {/* 로그인 후 채팅 기능 표시 */}
     </div>
   );
 }

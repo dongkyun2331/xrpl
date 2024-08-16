@@ -1,4 +1,3 @@
-// components/WalletInfo.js
 export default function WalletInfo({ wallet, onClose }) {
   if (!wallet) return null;
 
