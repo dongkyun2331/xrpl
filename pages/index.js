@@ -17,6 +17,21 @@ export default function Home() {
   const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
   const [showWalletInfo, setShowWalletInfo] = useState(false); // WalletInfo 표시 여부
 
+  useEffect(() => {
+    if (socket) {
+      // 서버와의 연결이 끊어졌을 때 페이지를 새로고침
+      socket.on("disconnect", () => {
+        window.location.reload(); // 페이지 새로고침
+      });
+    }
+
+    return () => {
+      if (socket) {
+        socket.off("disconnect");
+      }
+    };
+  }, [socket]);
+
   const handleWalletCreated = (newWallet) => {
     setWallet(newWallet); // 새 지갑 생성 시 지갑 정보 설정
     setShowWalletInfo(true); // 지갑 생성 후 WalletInfo 표시
@@ -71,7 +86,7 @@ export default function Home() {
       <div id="header">
         <div style={{ display: "flex" }}>
           <div id="title">FORI</div>
-          <span style={{ marginLeft: "5px" }}>XRPL v1.0.9</span>
+          <span style={{ marginLeft: "5px" }}>XRPL v1.0.10</span>
         </div>
         <div id="auth">
           {wallet ? (
