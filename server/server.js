@@ -34,63 +34,66 @@ const dbConfig = {
   database: process.env.DB_NAME,
 };
 
-// API 엔드포인트: /api/getNickname
+// 닉네임 조회
 app.post("/api/getNickname", async (req, res) => {
+  const { address } = req.body;
+
+  if (!address) {
+    return res.status(400).json({ message: "Address is required" });
+  }
+
+  try {
+    const connection = await mysql.createConnection(dbConfig);
+    const [rows] = await connection.execute(
+      "SELECT nickname FROM nicknames WHERE address = ?",
+      [address]
+    );
+
+    if (rows.length > 0) {
+      return res.status(200).json({ nickname: rows[0].nickname });
+    } else {
+      return res.status(404).json({ message: "Nickname not found" });
+    }
+  } catch (error) {
+    console.error("Database error:", error);
+    return res
+      .status(500)
+      .json({ message: "Database error", error: error.message });
+  }
+});
+
+// 닉네임 저장
+app.post("/api/saveNickname", async (req, res) => {
   const { nickname, address } = req.body;
 
-  if (!nickname && !address) {
+  if (!nickname || !address) {
     return res
       .status(400)
       .json({ message: "Nickname and address are required" });
   }
 
   try {
-    // MySQL 데이터베이스에 연결
     const connection = await mysql.createConnection(dbConfig);
 
-    if (address && !nickname) {
-      // 닉네임 조회
-      const [rows] = await connection.execute(
-        "SELECT nickname FROM nicknames WHERE address = ?",
-        [address]
-      );
+    // 닉네임 중복 검사
+    const [existingRows] = await connection.execute(
+      "SELECT nickname FROM nicknames WHERE nickname = ?",
+      [nickname]
+    );
 
-      if (rows.length > 0) {
-        await connection.end();
-        return res.status(200).json({ nickname: rows[0].nickname });
-      } else {
-        await connection.end();
-        return res.status(404).json({ message: "Nickname not found" });
-      }
-    } else if (nickname && address) {
-      // 닉네임 중복 검사 및 업데이트 또는 삽입
-      const [rows] = await connection.execute(
-        "SELECT address FROM nicknames WHERE address = ?",
-        [address]
-      );
-
-      if (rows.length > 0) {
-        // 이미 존재하는 경우 업데이트
-        await connection.execute(
-          "UPDATE nicknames SET nickname = ? WHERE address = ?",
-          [nickname, address]
-        );
-        await connection.end();
-        return res
-          .status(200)
-          .json({ message: "Nickname updated successfully" });
-      } else {
-        // 존재하지 않는 경우 새로 삽입
-        await connection.execute(
-          "INSERT INTO nicknames (address, nickname) VALUES (?, ?)",
-          [address, nickname]
-        );
-        await connection.end();
-        return res.status(200).json({ message: "Nickname saved successfully" });
-      }
+    if (existingRows.length > 0) {
+      return res.status(400).json({ message: "Nickname already exists" });
     }
+
+    // 닉네임 저장
+    await connection.execute(
+      "INSERT INTO nicknames (address, nickname) VALUES (?, ?)",
+      [address, nickname]
+    );
+
+    return res.status(200).json({ message: "Nickname saved successfully" });
   } catch (error) {
-    console.error("Database error:", error); // 오류 로그 출력
+    console.error("Database error:", error);
     return res
       .status(500)
       .json({ message: "Database error", error: error.message });

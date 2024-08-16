@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import io from "socket.io-client";
 import CreateWalletButton from "../components/CreateWalletButton";
 import WalletLogin from "../components/WalletLogin";
@@ -22,8 +22,31 @@ export default function Home() {
     setShowWalletInfo(true); // 지갑 생성 후 WalletInfo 표시
   };
 
-  const handleWalletConnected = (connectedWallet) => {
+  const handleWalletConnected = async (connectedWallet) => {
     setWallet(connectedWallet); // 기존 지갑 연결 시 지갑 정보 설정
+
+    // 로그인 시 닉네임 불러오기
+    try {
+      const response = await fetch(
+        "https://forixrpl-server.duckdns.org:3001/api/getNickname",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ address: connectedWallet.address }),
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setNickname(data.nickname); // 닉네임 설정
+      } else {
+        setNickname(""); // 닉네임 없음
+      }
+    } catch (error) {
+      console.error("Error fetching nickname:", error);
+    }
   };
 
   const handleLogout = () => {
@@ -48,7 +71,7 @@ export default function Home() {
       <div id="header">
         <div style={{ display: "flex" }}>
           <div id="title">FORI</div>
-          <span style={{ marginLeft: "5px" }}>XRPL v1.0.8</span>
+          <span style={{ marginLeft: "5px" }}>XRPL v1.0.9</span>
         </div>
         <div id="auth">
           {wallet ? (

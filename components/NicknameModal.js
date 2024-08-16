@@ -5,10 +5,10 @@ export default function NicknameModal({ onClose, wallet }) {
   const [error, setError] = useState("");
 
   const handleSave = async () => {
+    setError(""); // 이전 오류 초기화
     try {
-      // 서버의 전체 URL을 사용하여 API 요청을 보냅니다.
       const response = await fetch(
-        "https://forixrpl-server.duckdns.org:3001/api/getNickname",
+        "https://forixrpl-server.duckdns.org:3001/api/saveNickname",
         {
           method: "POST",
           headers: {
@@ -19,10 +19,10 @@ export default function NicknameModal({ onClose, wallet }) {
       );
 
       if (response.ok) {
-        onClose(nickname);
+        onClose(nickname); // 닉네임 저장 후 부모 컴포넌트에 닉네임 전달
       } else {
         const errorData = await response.json();
-        setError(errorData.message);
+        setError(errorData.message); // 오류 메시지 설정
       }
     } catch (error) {
       console.error("Error saving nickname:", error);
