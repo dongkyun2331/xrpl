@@ -50,37 +50,6 @@ export default function Character({ nickname, socket }) {
         });
       });
 
-      // 채팅 메시지를 받을 때
-      socket.on("chatMessage", ({ playerId, message }) => {
-        setPlayers((prev) => {
-          if (prev[playerId]) {
-            return {
-              ...prev,
-              [playerId]: {
-                ...prev[playerId],
-                bubbleMessage: message,
-              },
-            };
-          }
-          return prev;
-        });
-
-        setTimeout(() => {
-          setPlayers((prev) => {
-            if (prev[playerId]) {
-              return {
-                ...prev,
-                [playerId]: {
-                  ...prev[playerId],
-                  bubbleMessage: "", // 말풍선 메시지 삭제
-                },
-              };
-            }
-            return prev;
-          });
-        }, 3000); // 3초 후 말풍선 사라짐
-      });
-
       // 로그인 시 캐릭터와 닉네임을 바로 보여줍니다.
       socket.emit("setNickname", nickname);
       socket.emit("move", {
@@ -88,6 +57,19 @@ export default function Character({ nickname, socket }) {
         y: Math.max(centerY, headerHeight),
         direction: "down",
       });
+
+      // 현재 플레이어의 초기 위치를 설정
+      setPlayers((prevPlayers) => ({
+        ...prevPlayers,
+        [socket.id]: {
+          id: socket.id,
+          x: centerX,
+          y: Math.max(centerY, headerHeight),
+          direction: "down",
+          nickname,
+          isWalking: false,
+        },
+      }));
     }
 
     return () => {
