@@ -75,7 +75,8 @@ export default function Character({ nickname, socket }) {
         }, 3000); // 3초 후 말풍선 사라짐
       });
 
-      // 로그인 시 캐릭터를 바로 보여줍니다.
+      // 로그인 시 캐릭터와 닉네임을 바로 보여줍니다.
+      socket.emit("setNickname", nickname);
       socket.emit("move", {
         x: centerX,
         y: Math.max(centerY, headerHeight),
@@ -92,14 +93,7 @@ export default function Character({ nickname, socket }) {
         socket.off("chatMessage");
       }
     };
-  }, [socket]);
-
-  useEffect(() => {
-    if (nickname && socket) {
-      console.log("Nickname set: ", nickname);
-      socket.emit("setNickname", nickname);
-    }
-  }, [nickname, socket]);
+  }, [socket, nickname]);
 
   const moveCharacter = (key, forceMove = false) => {
     let newDirection = direction;
