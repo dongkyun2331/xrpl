@@ -63,25 +63,31 @@ app.post("/api/getNickname", async (req, res) => {
         return res.status(404).json({ message: "Nickname not found" });
       }
     } else if (nickname && address) {
-      // 닉네임 중복 검사
+      // 닉네임 중복 검사 및 업데이트 또는 삽입
       const [rows] = await connection.execute(
-        "SELECT nickname FROM nicknames WHERE nickname = ?",
-        [nickname]
+        "SELECT address FROM nicknames WHERE address = ?",
+        [address]
       );
 
       if (rows.length > 0) {
+        // 이미 존재하는 경우 업데이트
+        await connection.execute(
+          "UPDATE nicknames SET nickname = ? WHERE address = ?",
+          [nickname, address]
+        );
         await connection.end();
-        return res.status(400).json({ message: "Nickname already exists" });
+        return res
+          .status(200)
+          .json({ message: "Nickname updated successfully" });
+      } else {
+        // 존재하지 않는 경우 새로 삽입
+        await connection.execute(
+          "INSERT INTO nicknames (address, nickname) VALUES (?, ?)",
+          [address, nickname]
+        );
+        await connection.end();
+        return res.status(200).json({ message: "Nickname saved successfully" });
       }
-
-      // 닉네임 저장
-      await connection.execute(
-        "INSERT INTO nicknames (address, nickname) VALUES (?, ?)",
-        [address, nickname]
-      );
-
-      await connection.end();
-      return res.status(200).json({ message: "Nickname saved successfully" });
     }
   } catch (error) {
     console.error("Database error:", error); // 오류 로그 출력
