@@ -6,7 +6,6 @@ export default function Character({ nickname, socket }) {
   const [isWalking, setIsWalking] = useState(false);
   const [step, setStep] = useState(0);
   const [players, setPlayers] = useState({});
-  const [isLoading, setIsLoading] = useState(true); // 로딩 상태 추가
   const walkIntervalRef = useRef(null);
   const characterSize = 50; // 캐릭터 크기
   const headerHeight = 100; // 헤더 높이 (header 영역을 넘지 못하게 하기 위함)
@@ -21,7 +20,6 @@ export default function Character({ nickname, socket }) {
       // 서버에서 현재 플레이어 정보 수신
       socket.on("currentPlayers", (players) => {
         setPlayers(players);
-        setIsLoading(false); // 플레이어 정보가 수신되면 로딩 완료
       });
 
       // 새로운 플레이어가 들어왔을 때
@@ -208,15 +206,16 @@ export default function Character({ nickname, socket }) {
 
   const renderCharacter = (player) => {
     const isCurrentPlayer = player.id === socket.id;
+    const isWalking = player.x !== position.left || player.y !== position.top;
     const armTransform = `rotate(${getArmLegTransform(
       "arm",
       step,
-      isCurrentPlayer ? isWalking : false
+      isWalking
     )} 14 24)`;
     const legTransform = `rotate(${getArmLegTransform(
       "leg",
       step,
-      isCurrentPlayer ? isWalking : false
+      isWalking
     )} 20 50)`;
 
     const characterStyle = {
@@ -433,10 +432,5 @@ export default function Character({ nickname, socket }) {
     );
   };
 
-  return (
-    <div>
-      {isLoading && <div>Loading characters...</div>} {/* 로딩 메시지 표시 */}
-      {Object.values(players).map(renderCharacter)}
-    </div>
-  );
+  return <div>{Object.values(players).map(renderCharacter)}</div>;
 }
