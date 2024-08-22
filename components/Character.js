@@ -220,6 +220,7 @@ export default function Character({ nickname, socket }) {
       position: "absolute",
       top: player.y,
       left: player.x,
+      pointerEvents: "none", // 마우스 이벤트 방지
     };
 
     const renderDirection = () => {
@@ -410,6 +411,7 @@ export default function Character({ nickname, socket }) {
               textAlign: "center",
               whiteSpace: "normal",
               wordBreak: "break-word",
+              pointerEvents: "none", // 마우스 이벤트 방지
             }}
           >
             {player.bubbleMessage}
@@ -421,6 +423,7 @@ export default function Character({ nickname, socket }) {
               textAlign: "center",
               marginTop: "-10px",
               color: "#000",
+              pointerEvents: "none", // 마우스 이벤트 방지
             }}
           >
             {player.nickname}
