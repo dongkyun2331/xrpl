@@ -11,30 +11,31 @@ export default function WalletLogin({ onWalletConnected, wallet, onLogout }) {
     setError(null);
 
     try {
-      // 시크릿 키로 지갑 생성
       const wallet = Wallet.fromSeed(secretKey);
 
-      // XRP Ledger 서버에 연결
       const client = new Client("wss://s1.ripple.com", {
-        connectionTimeout: 10000, // 타임아웃 시간을 10초로 설정
+        connectionTimeout: 10000,
       });
-
       await client.connect();
 
-      // 지갑 정보 가져오기
+      // 계정이 활성화되었는지 확인
       const response = await client.request({
         command: "account_info",
         account: wallet.classicAddress,
         ledger_index: "validated",
       });
 
-      const connectedWallet = {
-        address: wallet.classicAddress,
-        balance: response.result.account_data.Balance,
-        secret: secretKey,
-      };
+      if (response.result.account_data) {
+        const connectedWallet = {
+          address: wallet.classicAddress,
+          balance: response.result.account_data.Balance,
+          secret: secretKey,
+        };
 
-      onWalletConnected(connectedWallet); // 부모 컴포넌트에 연결된 지갑 정보 전달
+        onWalletConnected(connectedWallet); // 부모 컴포넌트에 연결된 지갑 정보 전달
+      } else {
+        throw new Error("Account not found or not activated.");
+      }
 
       client.disconnect();
     } catch (err) {
