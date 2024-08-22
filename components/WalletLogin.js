@@ -15,9 +15,10 @@ export default function WalletLogin({ onWalletConnected, wallet, onLogout }) {
       const wallet = Wallet.fromSeed(secretKey);
 
       // XRP Ledger 서버에 연결
-      const client = new Client("wss://s.altnet.rippletest.net:51233", {
+      const client = new Client("wss://s1.ripple.com", {
         connectionTimeout: 10000, // 타임아웃 시간을 10초로 설정
       });
+
       await client.connect();
 
       // 지갑 정보 가져오기

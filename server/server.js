@@ -97,7 +97,7 @@ app.post("/api/saveNickname", async (req, res) => {
 });
 
 app.post("/api/createWallet", async (req, res) => {
-  const client = new Client("wss://s.altnet.rippletest.net:51233", {
+  const client = new Client("wss://s1.ripple.com", {
     connectionTimeout: 10000,
   });
 
@@ -105,12 +105,12 @@ app.post("/api/createWallet", async (req, res) => {
     await client.connect();
 
     const wallet = Wallet.generate();
-    const response = await client.fundWallet(wallet);
 
+    // 메인넷에서는 테스트넷처럼 자동 펀딩이 없으므로, 펀딩은 직접 진행해야 합니다.
     res.status(200).json({
       address: wallet.classicAddress,
       secret: wallet.seed,
-      balance: response.balance,
+      balance: "0", // 초기 잔액은 0으로 설정
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
