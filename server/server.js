@@ -4,7 +4,7 @@ const { Server } = require("socket.io");
 const cors = require("cors");
 const fs = require("fs");
 const mysql = require("mysql2/promise");
-const { Wallet, Client } = require("xrpl"); // xrpl 라이브러리 추가
+const { Wallet, Client } = require("xrpl");
 require("dotenv").config();
 
 const app = express();
@@ -14,19 +14,16 @@ const options = {
   cert: fs.readFileSync("./fullchain.pem"),
 };
 
-// CORS 설정
 app.use(
   cors({
-    origin: "https://forixrpl.vercel.app", // 정확한 출처를 허용
+    origin: "https://forixrpl.vercel.app",
     methods: ["GET", "POST"],
-    credentials: true, // 쿠키를 사용한 인증이 필요한 경우에만 필요
+    credentials: true,
   })
 );
 
-// JSON 바디 파서 추가 (POST 요청에서 바디 데이터를 읽기 위해 필요)
 app.use(express.json());
 
-// MySQL 데이터베이스 연결 설정
 const dbConfig = {
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -34,7 +31,6 @@ const dbConfig = {
   database: process.env.DB_NAME,
 };
 
-// 닉네임 조회
 app.post("/api/getNickname", async (req, res) => {
   const { address } = req.body;
 
@@ -62,7 +58,6 @@ app.post("/api/getNickname", async (req, res) => {
   }
 });
 
-// 닉네임 저장 및 업데이트
 app.post("/api/saveNickname", async (req, res) => {
   const { nickname, address } = req.body;
 
@@ -75,21 +70,18 @@ app.post("/api/saveNickname", async (req, res) => {
   try {
     const connection = await mysql.createConnection(dbConfig);
 
-    // 중복된 주소가 있는지 확인
     const [existingRows] = await connection.execute(
       "SELECT * FROM nicknames WHERE address = ?",
       [address]
     );
 
     if (existingRows.length > 0) {
-      // 이미 존재하는 주소가 있다면 닉네임을 업데이트합니다.
       await connection.execute(
         "UPDATE nicknames SET nickname = ? WHERE address = ?",
         [nickname, address]
       );
       return res.status(200).json({ message: "Nickname updated successfully" });
     } else {
-      // 새 주소라면 닉네임을 삽입합니다.
       await connection.execute(
         "INSERT INTO nicknames (address, nickname) VALUES (?, ?)",
         [address, nickname]
@@ -104,7 +96,6 @@ app.post("/api/saveNickname", async (req, res) => {
   }
 });
 
-// API 엔드포인트: /api/createWallet
 app.post("/api/createWallet", async (req, res) => {
   const client = new Client("wss://s.altnet.rippletest.net:51233", {
     connectionTimeout: 10000,
@@ -128,7 +119,6 @@ app.post("/api/createWallet", async (req, res) => {
   }
 });
 
-// WebSocket 서버 설정
 const server = https.createServer(options, app);
 const io = new Server(server, {
   cors: {

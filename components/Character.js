@@ -11,23 +11,19 @@ export default function Character({ nickname, socket }) {
   const headerHeight = 100; // 헤더 높이 (header 영역을 넘지 못하게 하기 위함)
 
   useEffect(() => {
-    // 초기 중앙 위치 설정
     const centerX = window.innerWidth / 2 - characterSize / 2;
     const centerY = window.innerHeight / 2 - characterSize / 2;
     setPosition({ top: Math.max(centerY, headerHeight), left: centerX });
 
     if (socket) {
-      // 서버에서 현재 플레이어 정보 수신
       socket.on("currentPlayers", (players) => {
         setPlayers(players);
       });
 
-      // 새로운 플레이어가 들어왔을 때
       socket.on("newPlayer", (players) => {
         setPlayers(players);
       });
 
-      // 다른 플레이어가 움직였을 때
       socket.on("playerMoved", (player) => {
         setPlayers((prev) => ({
           ...prev,
@@ -41,7 +37,6 @@ export default function Character({ nickname, socket }) {
         }, 200); // 잠시 후 걷기 동작 해제
       });
 
-      // 플레이어가 나갔을 때
       socket.on("playerDisconnected", (playerId) => {
         setPlayers((prev) => {
           const newPlayers = { ...prev };
@@ -50,7 +45,26 @@ export default function Character({ nickname, socket }) {
         });
       });
 
-      // 로그인 시 캐릭터와 닉네임을 바로 보여줍니다.
+      socket.on("chatMessage", ({ playerId, message }) => {
+        setPlayers((prevPlayers) => ({
+          ...prevPlayers,
+          [playerId]: {
+            ...prevPlayers[playerId],
+            bubbleMessage: message,
+          },
+        }));
+
+        setTimeout(() => {
+          setPlayers((prevPlayers) => ({
+            ...prevPlayers,
+            [playerId]: {
+              ...prevPlayers[playerId],
+              bubbleMessage: "",
+            },
+          }));
+        }, 3000); // 3초 후 메시지 제거
+      });
+
       socket.emit("setNickname", nickname);
       socket.emit("move", {
         x: centerX,
@@ -58,7 +72,6 @@ export default function Character({ nickname, socket }) {
         direction: "down",
       });
 
-      // 현재 플레이어의 초기 위치를 설정
       setPlayers((prevPlayers) => ({
         ...prevPlayers,
         [socket.id]: {
@@ -128,7 +141,7 @@ export default function Character({ nickname, socket }) {
     setDirection(newDirection);
     if (forceMove || newDirection === direction) {
       setPosition(newPosition);
-      setIsWalking(true); // 현재 플레이어가 걷는 상태로 설정
+      setIsWalking(true);
 
       if (socket) {
         socket.emit("move", {
@@ -155,11 +168,9 @@ export default function Character({ nickname, socket }) {
       if (event.repeat) return;
       setIsWalking(true);
 
-      // 첫 키 입력에서 방향만 전환하고, 필요시 이동
       moveCharacter(event.key, false);
       setStep((prev) => (prev + 1) % 4);
 
-      // 일정 시간 후에 계속 이동
       startWalking(event.key);
     };
 
@@ -189,7 +200,7 @@ export default function Character({ nickname, socket }) {
           arm: [-10, 10, -10, 10], // 팔의 움직임 각도
           leg: [10, -10, 10, -10], // 다리의 움직임 각도
         }
-      : { arm: [0, 0, 0, 0], leg: [0, 0, 0, 0] }; // 움직이지 않을 때
+      : { arm: [0, 0, 0, 0], leg: [0, 0, 0, 0] };
     return movement[limb][step];
   };
 
@@ -397,8 +408,8 @@ export default function Character({ nickname, socket }) {
               fontSize: "12px",
               minWidth: "150px",
               textAlign: "center",
-              whiteSpace: "normal", // 텍스트가 줄바꿈 되도록 설정
-              wordBreak: "break-word", // 단어가 너무 길 경우 줄바꿈
+              whiteSpace: "normal",
+              wordBreak: "break-word",
             }}
           >
             {player.bubbleMessage}
