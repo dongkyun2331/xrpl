@@ -9,10 +9,15 @@ export default function WalletLogin({ onWalletConnected, onLogout }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const openModal = () => setModalVisible(true);
+  const openModal = () => {
+    setModalVisible(true);
+    setError(null); // 모달 열 때 에러 초기화
+  };
+
   const closeModal = () => {
     setModalVisible(false);
-    setError(null); // 모달을 닫을 때 에러를 초기화
+    setSecretKey(""); // 모달 닫을 때 시크릿 키 초기화
+    setError(null);
   };
 
   const handleConnectWallet = async () => {
@@ -60,9 +65,7 @@ export default function WalletLogin({ onWalletConnected, onLogout }) {
       qrcodeModal: QRCodeModal,
     });
 
-    // Check if connection is already established
     if (!connector.connected) {
-      // create new session
       await connector.createSession();
     }
 
@@ -75,8 +78,6 @@ export default function WalletLogin({ onWalletConnected, onLogout }) {
       const { accounts } = payload.params[0];
       const address = accounts[0];
 
-      // Here you can use the address to interact with the XRP Ledger
-      // and authenticate the user. For example:
       onWalletConnected({ address });
       closeModal();
     });
@@ -102,6 +103,7 @@ export default function WalletLogin({ onWalletConnected, onLogout }) {
 
   const handleLogout = () => {
     setSecretKey("");
+    setError(null);
     if (onLogout) onLogout();
   };
 
@@ -112,11 +114,9 @@ export default function WalletLogin({ onWalletConnected, onLogout }) {
       {modalVisible && (
         <div className="modal">
           <div className="modal-content">
-            <span className="close" onClick={closeModal}>
-              &times;
-            </span>
-            <h2>Login with Wallet</h2>
-
+            <button onClick={closeModal} style={{ marginBottom: "20px" }}>
+              X
+            </button>
             <div style={{ marginBottom: "20px" }}>
               <input
                 type="text"
@@ -124,7 +124,7 @@ export default function WalletLogin({ onWalletConnected, onLogout }) {
                 value={secretKey}
                 onChange={(e) => setSecretKey(e.target.value)}
                 disabled={loading}
-                style={{ width: "100%", padding: "10px", marginBottom: "10px" }}
+                style={{ width: "94%", padding: "10px", marginBottom: "10px" }}
               />
               <button
                 onClick={handleConnectWallet}
