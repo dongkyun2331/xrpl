@@ -1,10 +1,21 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Wallet, Client } from "xrpl";
+import WalletConnect from "@walletconnect/client";
+import QRCodeModal from "@walletconnect/qrcode-modal";
+import Web3 from "web3";
+import "./App.css"; // 모달 스타일을 포함한 CSS 파일을 임포트
 
-export default function WalletLogin({ onWalletConnected, wallet, onLogout }) {
-  const [secretKey, setSecretKey] = useState(wallet ? wallet.secret : "");
+export default function WalletLogin({ onWalletConnected, onLogout }) {
+  const [modalVisible, setModalVisible] = useState(false);
+  const [secretKey, setSecretKey] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const openModal = () => setModalVisible(true);
+  const closeModal = () => {
+    setModalVisible(false);
+    setError(null); // 모달을 닫을 때 에러를 초기화
+  };
 
   const handleConnectWallet = async () => {
     setLoading(true);
@@ -18,7 +29,6 @@ export default function WalletLogin({ onWalletConnected, wallet, onLogout }) {
       });
       await client.connect();
 
-      // 계정이 활성화되었는지 확인
       const response = await client.request({
         command: "account_info",
         account: wallet.classicAddress,
@@ -32,8 +42,8 @@ export default function WalletLogin({ onWalletConnected, wallet, onLogout }) {
           secret: secretKey,
         };
 
-        onWalletConnected(connectedWallet); // 부모 컴포넌트에 연결된 지갑 정보 전달
-        setError(null); // 로그인 성공 시 에러 메시지 제거
+        onWalletConnected(connectedWallet);
+        closeModal(); // 로그인 성공 시 모달 닫기
       } else {
         throw new Error("Account not found or not activated.");
       }
@@ -46,41 +56,116 @@ export default function WalletLogin({ onWalletConnected, wallet, onLogout }) {
     }
   };
 
+  const handleSafePalLogin = async () => {
+    const connector = new WalletConnect({
+      bridge: "https://bridge.walletconnect.org", // Required
+      qrcodeModal: QRCodeModal,
+    });
+
+    // Check if connection is already established
+    if (!connector.connected) {
+      // create new session
+      await connector.createSession();
+    }
+
+    connector.on("connect", (error, payload) => {
+      if (error) {
+        setError("Failed to connect to SafePal: " + error.message);
+        return;
+      }
+
+      const { accounts } = payload.params[0];
+      const address = accounts[0];
+
+      // Here you can use the address to interact with the XRP Ledger
+      // and authenticate the user. For example:
+      onWalletConnected({ address });
+      closeModal();
+    });
+
+    connector.on("session_update", (error, payload) => {
+      if (error) {
+        setError("Failed to update session: " + error.message);
+        return;
+      }
+
+      const { accounts } = payload.params[0];
+      console.log(accounts);
+    });
+
+    connector.on("disconnect", (error, payload) => {
+      if (error) {
+        setError("Disconnected: " + error.message);
+      } else {
+        console.log("Disconnected");
+      }
+    });
+  };
+
   const handleLogout = () => {
     setSecretKey("");
     if (onLogout) onLogout();
   };
 
   return (
-    <div style={{ display: "flex", alignItems: "center" }}>
-      {wallet ? (
-        <>
-          <div style={{ padding: "10px 15px" }}>Address: {wallet.address}</div>
-          <div style={{ padding: "10px 15px" }}>
-            Balance: {wallet.balance} XRP
+    <div>
+      <button onClick={openModal}>Connect Wallet</button>
+
+      {modalVisible && (
+        <div className="modal">
+          <div className="modal-content">
+            <span className="close" onClick={closeModal}>
+              &times;
+            </span>
+            <h2>Login with Wallet</h2>
+
+            <div style={{ marginBottom: "20px" }}>
+              <input
+                type="text"
+                placeholder="Enter Secret Key"
+                value={secretKey}
+                onChange={(e) => setSecretKey(e.target.value)}
+                disabled={loading}
+                style={{ width: "100%", padding: "10px", marginBottom: "10px" }}
+              />
+              <button
+                onClick={handleConnectWallet}
+                disabled={loading || !secretKey}
+                style={{
+                  width: "100%",
+                  padding: "10px",
+                  backgroundColor: "#4CAF50",
+                  color: "white",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                {loading ? "Connecting..." : "Connect Wallet"}
+              </button>
+            </div>
+
+            <div style={{ textAlign: "center", marginBottom: "20px" }}>or</div>
+
+            <button
+              onClick={handleSafePalLogin}
+              style={{
+                width: "100%",
+                padding: "10px",
+                backgroundColor: "#007bff",
+                color: "white",
+                border: "none",
+                cursor: "pointer",
+              }}
+            >
+              Login with SafePal
+            </button>
+
+            {error && (
+              <p style={{ color: "red", marginTop: "10px" }}>{error}</p>
+            )}
           </div>
-          <button onClick={handleLogout} disabled={loading}>
-            Logout
-          </button>
-        </>
-      ) : (
-        <>
-          <input
-            type="text"
-            placeholder="Enter Secret Key"
-            value={secretKey}
-            onChange={(e) => setSecretKey(e.target.value)}
-            disabled={loading}
-          />
-          <button
-            onClick={handleConnectWallet}
-            disabled={loading || !secretKey}
-          >
-            {loading ? "Connecting..." : "Connect Wallet"}
-          </button>
-        </>
+        </div>
       )}
-      {error && <p style={{ color: "red" }}>{error}</p>}
     </div>
   );
 }
