@@ -33,6 +33,7 @@ export default function WalletLogin({ onWalletConnected, wallet, onLogout }) {
         };
 
         onWalletConnected(connectedWallet); // 부모 컴포넌트에 연결된 지갑 정보 전달
+        setError(null); // 로그인 성공 시 에러 메시지 제거
       } else {
         throw new Error("Account not found or not activated.");
       }
