@@ -2,8 +2,6 @@ import React, { useState } from "react";
 import { Wallet, Client } from "xrpl";
 import WalletConnect from "@walletconnect/client";
 import QRCodeModal from "@walletconnect/qrcode-modal";
-import Web3 from "web3";
-import "./App.css"; // 모달 스타일을 포함한 CSS 파일을 임포트
 
 export default function WalletLogin({ onWalletConnected, onLogout }) {
   const [modalVisible, setModalVisible] = useState(false);
