@@ -1,7 +1,5 @@
 import React, { useState } from "react";
 import { Wallet, Client } from "xrpl";
-import WalletConnect from "@walletconnect/client";
-import QRCodeModal from "@walletconnect/qrcode-modal";
 
 export default function WalletLogin({ onWalletConnected, onLogout }) {
   const [modalVisible, setModalVisible] = useState(false);
@@ -71,47 +69,30 @@ export default function WalletLogin({ onWalletConnected, onLogout }) {
   };
 
   const handleSafePalLogin = async () => {
-    const connector = new WalletConnect({
-      bridge: "https://bridge.walletconnect.org",
-      qrcodeModal: QRCodeModal,
-    });
+    if (window.ethereum) {
+      try {
+        // SafePal 확장을 통해 지갑 연결 시도
+        const accounts = await window.ethereum.request({
+          method: "eth_requestAccounts",
+        });
 
-    if (!connector.connected) {
-      await connector.createSession();
+        const account = accounts[0];
+        const connectedWallet = {
+          address: account,
+          network: "mainnet", // SafePal은 이더리움 네트워크를 사용하므로 메인넷으로 설정
+        };
+
+        // 로그인 상태 업데이트
+        setWalletInfo(connectedWallet);
+        setIsLoggedIn(true);
+        onWalletConnected(connectedWallet);
+        closeModal();
+      } catch (err) {
+        setError("Failed to connect to SafePal: " + err.message);
+      }
+    } else {
+      setError("SafePal Wallet extension not detected.");
     }
-
-    connector.on("connect", (error, payload) => {
-      if (error) {
-        setError("Failed to connect to SafePal: " + error.message);
-        return;
-      }
-
-      const { accounts } = payload.params[0];
-      const address = accounts[0];
-
-      setWalletInfo({ address, network }); // 지갑 정보 상태에 저장
-      setIsLoggedIn(true); // 로그인 상태 변경
-      onWalletConnected({ address, network });
-      closeModal();
-    });
-
-    connector.on("session_update", (error, payload) => {
-      if (error) {
-        setError("Failed to update session: " + error.message);
-        return;
-      }
-
-      const { accounts } = payload.params[0];
-      console.log(accounts);
-    });
-
-    connector.on("disconnect", (error, payload) => {
-      if (error) {
-        setError("Disconnected: " + error.message);
-      } else {
-        console.log("Disconnected");
-      }
-    });
   };
 
   const handleLogout = () => {
