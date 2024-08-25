@@ -3,6 +3,7 @@ export default function WalletInfo({ wallet, onClose }) {
 
   return (
     <div id="wallet-info">
+      <p>"Please save your secret key."</p>
       <p>
         <strong>Address:</strong> {wallet.address}
       </p>

@@ -117,7 +117,7 @@ export default function Home() {
       <div id="header">
         <div style={{ display: "flex" }}>
           <div id="title">FORI</div>
-          <span style={{ marginLeft: "5px" }}>XRPL v1.0.24</span>
+          <span style={{ marginLeft: "5px" }}>XRPL v1.0.25</span>
         </div>
         <div id="auth">
           {wallet ? (
@@ -136,7 +136,11 @@ export default function Home() {
           {showWalletInfo && (
             <WalletInfo
               wallet={wallet}
-              onClose={() => setShowWalletInfo(false)}
+              onClose={() => {
+                setShowWalletInfo(false);
+                setWallet(null);
+                setNickname("");
+              }}
             />
           )}
           <FloatingButton onNicknameClick={handleNicknameClick} />
