@@ -16,7 +16,7 @@ const options = {
 
 app.use(
   cors({
-    origin: "https://forixrpl.vercel.app",
+    origin: ["https://forixrpl.vercel.app", "http://localhost:3000"],
     methods: ["GET", "POST"],
     credentials: true,
   })
@@ -97,7 +97,14 @@ app.post("/api/saveNickname", async (req, res) => {
 });
 
 app.post("/api/createWallet", async (req, res) => {
-  const client = new Client("wss://s1.ripple.com", {
+  const { network } = req.body; // 요청 본문에서 네트워크 선택 (메인넷 또는 테스트넷)
+
+  const serverUrl =
+    network === "testnet"
+      ? "wss://s.altnet.rippletest.net:51233"
+      : "wss://s1.ripple.com";
+
+  const client = new Client(serverUrl, {
     connectionTimeout: 10000,
   });
 
@@ -106,11 +113,19 @@ app.post("/api/createWallet", async (req, res) => {
 
     const wallet = Wallet.generate();
 
-    // 메인넷에서는 테스트넷처럼 자동 펀딩이 없으므로, 펀딩은 직접 진행해야 합니다.
+    let balance = "0";
+
+    if (network === "testnet") {
+      // 테스트넷 계정 생성 시 초기 자금 지원
+      const response = await client.fundWallet(wallet);
+      balance = response.balance; // 테스트넷에서 제공받은 초기 잔액
+    }
+
     res.status(200).json({
       address: wallet.classicAddress,
       secret: wallet.seed,
-      balance: "0", // 초기 잔액은 0으로 설정
+      balance: balance, // 초기 잔액 반환 (테스트넷의 경우 자금 지원 후 잔액)
+      network, // 선택한 네트워크를 반환
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

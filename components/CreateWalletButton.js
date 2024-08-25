@@ -2,6 +2,7 @@ import { useState } from "react";
 
 export default function CreateWalletButton({ onWalletCreated }) {
   const [loading, setLoading] = useState(false);
+  const [network, setNetwork] = useState("mainnet"); // 기본값을 메인넷으로 설정
 
   const handleCreateWallet = async () => {
     setLoading(true);
@@ -13,6 +14,7 @@ export default function CreateWalletButton({ onWalletCreated }) {
           headers: {
             "Content-Type": "application/json",
           },
+          body: JSON.stringify({ network }), // 선택된 네트워크를 서버로 보냄
         }
       );
 
@@ -30,12 +32,18 @@ export default function CreateWalletButton({ onWalletCreated }) {
   };
 
   return (
-    <button
-      onClick={handleCreateWallet}
-      disabled={loading}
-      style={{ float: "right" }}
-    >
-      {loading ? "Creating Wallet..." : "Create Wallet"}
-    </button>
+    <div style={{ float: "right" }}>
+      <select
+        value={network}
+        onChange={(e) => setNetwork(e.target.value)}
+        disabled={loading}
+      >
+        <option value="mainnet">Mainnet</option>
+        <option value="testnet">Testnet</option>
+      </select>
+      <button onClick={handleCreateWallet} disabled={loading}>
+        {loading ? "Creating Wallet..." : "Create Wallet"}
+      </button>
+    </div>
   );
 }

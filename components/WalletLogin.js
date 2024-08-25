@@ -8,15 +8,16 @@ export default function WalletLogin({ onWalletConnected, onLogout }) {
   const [secretKey, setSecretKey] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [network, setNetwork] = useState("mainnet"); // 네트워크 선택 상태 추가
 
   const openModal = () => {
     setModalVisible(true);
-    setError(null); // 모달 열 때 에러 초기화
+    setError(null);
   };
 
   const closeModal = () => {
     setModalVisible(false);
-    setSecretKey(""); // 모달 닫을 때 시크릿 키 초기화
+    setSecretKey("");
     setError(null);
   };
 
@@ -27,7 +28,12 @@ export default function WalletLogin({ onWalletConnected, onLogout }) {
     try {
       const wallet = Wallet.fromSeed(secretKey);
 
-      const client = new Client("wss://s1.ripple.com", {
+      const serverUrl =
+        network === "testnet"
+          ? "wss://s.altnet.rippletest.net:51233"
+          : "wss://s1.ripple.com";
+
+      const client = new Client(serverUrl, {
         connectionTimeout: 10000,
       });
       await client.connect();
@@ -43,10 +49,11 @@ export default function WalletLogin({ onWalletConnected, onLogout }) {
           address: wallet.classicAddress,
           balance: response.result.account_data.Balance,
           secret: secretKey,
+          network, // 선택한 네트워크 정보 추가
         };
 
         onWalletConnected(connectedWallet);
-        closeModal(); // 로그인 성공 시 모달 닫기
+        closeModal();
       } else {
         throw new Error("Account not found or not activated.");
       }
@@ -61,7 +68,7 @@ export default function WalletLogin({ onWalletConnected, onLogout }) {
 
   const handleSafePalLogin = async () => {
     const connector = new WalletConnect({
-      bridge: "https://bridge.walletconnect.org", // Required
+      bridge: "https://bridge.walletconnect.org",
       qrcodeModal: QRCodeModal,
     });
 
@@ -78,7 +85,7 @@ export default function WalletLogin({ onWalletConnected, onLogout }) {
       const { accounts } = payload.params[0];
       const address = accounts[0];
 
-      onWalletConnected({ address });
+      onWalletConnected({ address, network }); // 선택한 네트워크 정보 추가
       closeModal();
     });
 
@@ -117,6 +124,18 @@ export default function WalletLogin({ onWalletConnected, onLogout }) {
             <button onClick={closeModal} style={{ marginBottom: "20px" }}>
               X
             </button>
+
+            <div style={{ marginBottom: "20px" }}>
+              <select
+                value={network}
+                onChange={(e) => setNetwork(e.target.value)}
+                disabled={loading}
+              >
+                <option value="mainnet">Mainnet</option>
+                <option value="testnet">Testnet</option>
+              </select>
+            </div>
+
             <div style={{ marginBottom: "20px" }}>
               <input
                 type="text"
