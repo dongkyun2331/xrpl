@@ -9,6 +9,8 @@ export default function WalletLogin({ onWalletConnected, onLogout }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [network, setNetwork] = useState("mainnet"); // 네트워크 선택 상태 추가
+  const [walletInfo, setWalletInfo] = useState(null); // 지갑 정보 상태
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // 로그인 상태 관리
 
   const openModal = () => {
     setModalVisible(true);
@@ -47,11 +49,13 @@ export default function WalletLogin({ onWalletConnected, onLogout }) {
       if (response.result.account_data) {
         const connectedWallet = {
           address: wallet.classicAddress,
-          balance: response.result.account_data.Balance,
+          balance: response.result.account_data.Balance / 1000000, // XRP 단위로 변환
           secret: secretKey,
           network, // 선택한 네트워크 정보 추가
         };
 
+        setWalletInfo(connectedWallet); // 지갑 정보 상태에 저장
+        setIsLoggedIn(true); // 로그인 상태 변경
         onWalletConnected(connectedWallet);
         closeModal();
       } else {
@@ -85,7 +89,9 @@ export default function WalletLogin({ onWalletConnected, onLogout }) {
       const { accounts } = payload.params[0];
       const address = accounts[0];
 
-      onWalletConnected({ address, network }); // 선택한 네트워크 정보 추가
+      setWalletInfo({ address, network }); // 지갑 정보 상태에 저장
+      setIsLoggedIn(true); // 로그인 상태 변경
+      onWalletConnected({ address, network });
       closeModal();
     });
 
@@ -109,16 +115,24 @@ export default function WalletLogin({ onWalletConnected, onLogout }) {
   };
 
   const handleLogout = () => {
-    setSecretKey("");
-    setError(null);
+    setWalletInfo(null); // 지갑 정보 초기화
+    setIsLoggedIn(false); // 로그아웃 상태로 전환
     if (onLogout) onLogout();
   };
 
   return (
     <div>
-      <button onClick={openModal}>Connect Wallet</button>
+      {!isLoggedIn ? (
+        <button onClick={openModal}>Connect Wallet</button>
+      ) : (
+        <div style={{ display: "flex", gap: "10px" }}>
+          <p>Wallet Address: {walletInfo?.address}</p>
+          <p>Balance: {walletInfo?.balance} XRP</p>
+          <button onClick={handleLogout}>Logout</button>
+        </div>
+      )}
 
-      {modalVisible && (
+      {modalVisible && !isLoggedIn && (
         <div className="modal">
           <div className="modal-content">
             <button onClick={closeModal} style={{ marginBottom: "20px" }}>
