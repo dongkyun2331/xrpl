@@ -68,33 +68,6 @@ export default function WalletLogin({ onWalletConnected, onLogout }) {
     }
   };
 
-  const handleSafePalLogin = async () => {
-    if (window.ethereum) {
-      try {
-        // SafePal 확장을 통해 지갑 연결 시도
-        const accounts = await window.ethereum.request({
-          method: "eth_requestAccounts",
-        });
-
-        const account = accounts[0];
-        const connectedWallet = {
-          address: account,
-          network: "mainnet", // SafePal은 이더리움 네트워크를 사용하므로 메인넷으로 설정
-        };
-
-        // 로그인 상태 업데이트
-        setWalletInfo(connectedWallet);
-        setIsLoggedIn(true);
-        onWalletConnected(connectedWallet);
-        closeModal();
-      } catch (err) {
-        setError("Failed to connect to SafePal: " + err.message);
-      }
-    } else {
-      setError("SafePal Wallet extension not detected.");
-    }
-  };
-
   const handleLogout = () => {
     setWalletInfo(null); // 지갑 정보 초기화
     setIsLoggedIn(false); // 로그아웃 상태로 전환
@@ -155,22 +128,6 @@ export default function WalletLogin({ onWalletConnected, onLogout }) {
                 {loading ? "Connecting..." : "Connect Wallet"}
               </button>
             </div>
-
-            <div style={{ textAlign: "center", marginBottom: "20px" }}>or</div>
-
-            <button
-              onClick={handleSafePalLogin}
-              style={{
-                width: "100%",
-                padding: "10px",
-                backgroundColor: "#007bff",
-                color: "white",
-                border: "none",
-                cursor: "pointer",
-              }}
-            >
-              Login with SafePal
-            </button>
 
             {error && (
               <p style={{ color: "red", marginTop: "10px" }}>{error}</p>
