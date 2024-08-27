@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 
 export default function Character({ nickname, socket }) {
   const [position, setPosition] = useState({ top: 0, left: 0 });
+  const [targetPosition, setTargetPosition] = useState(null); // 목표 위치 상태 추가
   const [direction, setDirection] = useState("down");
   const [isWalking, setIsWalking] = useState(false);
   const [step, setStep] = useState(0);
@@ -95,6 +96,61 @@ export default function Character({ nickname, socket }) {
       }
     };
   }, [socket, nickname]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!targetPosition) return;
+
+      const deltaX = targetPosition.left - position.left;
+      const deltaY = targetPosition.top - position.top;
+
+      let newDirection = direction;
+      let newPosition = { ...position };
+
+      if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        // 좌우 이동이 더 크면 좌우로 이동
+        if (deltaX > 0) {
+          newDirection = "right";
+          newPosition.left += characterSize;
+        } else {
+          newDirection = "left";
+          newPosition.left -= characterSize;
+        }
+      } else {
+        // 상하 이동이 더 크면 상하로 이동
+        if (deltaY > 0) {
+          newDirection = "down";
+          newPosition.top += characterSize;
+        } else {
+          newDirection = "up";
+          newPosition.top -= characterSize;
+        }
+      }
+
+      setDirection(newDirection);
+      setPosition(newPosition);
+      setIsWalking(true);
+
+      if (socket) {
+        socket.emit("move", {
+          x: newPosition.left,
+          y: newPosition.top,
+          direction: newDirection,
+        });
+      }
+
+      // 목표 위치에 도달하면 걷기 멈춤
+      if (
+        Math.abs(deltaX) <= characterSize &&
+        Math.abs(deltaY) <= characterSize
+      ) {
+        setIsWalking(false);
+        setTargetPosition(null);
+      }
+    }, 200);
+
+    return () => clearInterval(interval);
+  }, [targetPosition, position, direction, socket]);
 
   const moveCharacter = (key, forceMove = false) => {
     let newDirection = direction;
@@ -193,6 +249,20 @@ export default function Character({ nickname, socket }) {
       window.removeEventListener("keyup", handleKeyUp);
     };
   }, [position, direction]);
+
+  const handleMouseClick = (event) => {
+    const x = event.clientX - characterSize / 2;
+    const y = Math.max(event.clientY - characterSize / 2, headerHeight);
+    setTargetPosition({ top: y, left: x });
+  };
+
+  useEffect(() => {
+    window.addEventListener("click", handleMouseClick);
+
+    return () => {
+      window.removeEventListener("click", handleMouseClick);
+    };
+  }, []);
 
   const getArmLegTransform = (limb, step, isWalking) => {
     const movement = isWalking
