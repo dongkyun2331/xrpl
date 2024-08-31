@@ -2,21 +2,20 @@ import { useState } from "react";
 
 export default function CreateWalletButton({ onWalletCreated }) {
   const [loading, setLoading] = useState(false);
-  const [network, setNetwork] = useState("mainnet"); // 기본값을 메인넷으로 설정
+  const [network, setNetwork] = useState("Testnet");
+
+  const address = "forixrpl-server.duckdns.org";
 
   const handleCreateWallet = async () => {
     setLoading(true);
     try {
-      const res = await fetch(
-        "https://forixrpl-server.duckdns.org:3001/api/createWallet",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ network }), // 선택된 네트워크를 서버로 보냄
-        }
-      );
+      const res = await fetch(`https://${address}:3001/api/createWallet`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ network }), // 선택된 네트워크를 서버로 보냄
+      });
 
       if (!res.ok) {
         throw new Error("Failed to create wallet");
@@ -38,8 +37,9 @@ export default function CreateWalletButton({ onWalletCreated }) {
         onChange={(e) => setNetwork(e.target.value)}
         disabled={loading}
       >
-        <option value="mainnet">Mainnet</option>
         <option value="testnet">Testnet</option>
+        <option value="devnet">Devnet</option>
+        <option value="mainnet">Mainnet</option>
       </select>
       <button onClick={handleCreateWallet} disabled={loading}>
         {loading ? "Creating Wallet..." : "Create Wallet"}

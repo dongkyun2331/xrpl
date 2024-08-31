@@ -1,14 +1,18 @@
 import React, { useState } from "react";
 import { Wallet, Client } from "xrpl";
 
-export default function WalletLogin({ onWalletConnected, onLogout }) {
+export default function WalletLogin({ onWalletConnected, onLogout, onLogin }) {
   const [modalVisible, setModalVisible] = useState(false);
   const [secretKey, setSecretKey] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [network, setNetwork] = useState("mainnet"); // 네트워크 선택 상태 추가
-  const [walletInfo, setWalletInfo] = useState(null); // 지갑 정보 상태
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // 로그인 상태 관리
+  const [network, setNetwork] = useState("Testnet");
+  const [walletInfo, setWalletInfo] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const [loginUrl, setLoginUrl] = useState(null);
+  const [qrCode, setQrCode] = useState(null);
+  const [walletAddress, setWalletAddress] = useState(null);
 
   const openModal = () => {
     setModalVisible(true);
@@ -31,7 +35,9 @@ export default function WalletLogin({ onWalletConnected, onLogout }) {
       const serverUrl =
         network === "testnet"
           ? "wss://s.altnet.rippletest.net:51233"
-          : "wss://s1.ripple.com";
+          : network === "devnet"
+          ? "wss://s.devnet.rippletest.net:51233"
+          : "wss://s1.ripple.com"; // Devnet 추가
 
       const client = new Client(serverUrl, {
         connectionTimeout: 10000,
@@ -74,14 +80,64 @@ export default function WalletLogin({ onWalletConnected, onLogout }) {
     if (onLogout) onLogout();
   };
 
+  const initiateXummLogin = async () => {
+    try {
+      const res = await fetch("http://localhost:3001/api/xumm-login", {
+        method: "POST",
+      });
+
+      const data = await res.json();
+      setQrCode(data.qrCode);
+      setLoginUrl(data.loginUrl);
+    } catch (error) {
+      console.error("Failed to initiate XUMM login:", error);
+    }
+  };
+
+  const checkXummLoginStatus = async (uuid) => {
+    try {
+      const res = await fetch(
+        `http://localhost:3001/api/xumm-callback?uuid=${uuid}`
+      );
+      const data = await res.json();
+
+      if (data.success) {
+        setWalletAddress(data.walletAddress);
+        setIsLoggedIn(true);
+        onLogin(data.walletAddress);
+      } else {
+        console.error(data.message);
+      }
+    } catch (error) {
+      console.error("Failed to check login status:", error);
+    }
+  };
+
   return (
     <div>
       {!isLoggedIn ? (
-        <button onClick={openModal}>Connect Wallet</button>
+        <div>
+          <button onClick={openModal}>Connect Wallet</button>
+          <button onClick={initiateXummLogin}>Login with XUMM</button>
+          {qrCode && <img src={qrCode} alt="XUMM QR Code" />}
+          {loginUrl && (
+            <div>
+              <a href={loginUrl} target="_blank" rel="noopener noreferrer">
+                Or click here to login
+              </a>
+            </div>
+          )}
+        </div>
       ) : (
         <div style={{ display: "flex", gap: "10px" }}>
-          <p>Wallet Address: {walletInfo?.address}</p>
-          <p>Balance: {walletInfo?.balance} XRP</p>
+          {walletInfo ? (
+            <>
+              <p>Wallet Address: {walletInfo?.address}</p>
+              <p>Balance: {walletInfo?.balance} XRP</p>
+            </>
+          ) : (
+            <p>Logged in with wallet: {walletAddress}</p>
+          )}
           <button onClick={handleLogout}>Logout</button>
         </div>
       )}
@@ -99,8 +155,9 @@ export default function WalletLogin({ onWalletConnected, onLogout }) {
                 onChange={(e) => setNetwork(e.target.value)}
                 disabled={loading}
               >
-                <option value="mainnet">Mainnet</option>
                 <option value="testnet">Testnet</option>
+                <option value="devnet">Devnet</option>
+                <option value="mainnet">Mainnet</option>
               </select>
             </div>
 
@@ -111,7 +168,11 @@ export default function WalletLogin({ onWalletConnected, onLogout }) {
                 value={secretKey}
                 onChange={(e) => setSecretKey(e.target.value)}
                 disabled={loading}
-                style={{ width: "94%", padding: "10px", marginBottom: "10px" }}
+                style={{
+                  width: "94%",
+                  padding: "10px",
+                  marginBottom: "10px",
+                }}
               />
               <button
                 onClick={handleConnectWallet}

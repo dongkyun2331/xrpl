@@ -8,6 +8,8 @@ import FloatingButton from "../components/FloatingButton";
 import NicknameModal from "../components/NicknameModal";
 import Chat from "../components/Chat";
 
+const address = "forixrpl-server.duckdns.org";
+
 // 소켓을 초기화합니다.
 const useSocket = (url) => {
   const [socket, setSocket] = useState(null);
@@ -57,7 +59,7 @@ const useSocket = (url) => {
 };
 
 export default function Home() {
-  const socket = useSocket("https://forixrpl-server.duckdns.org:3001");
+  const socket = useSocket(`https://${address}:3001`);
   const [wallet, setWallet] = useState(null); // 지갑 정보 상태
   const [nickname, setNickname] = useState("");
   const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
@@ -73,16 +75,13 @@ export default function Home() {
 
     // 로그인 시 닉네임 불러오기
     try {
-      const response = await fetch(
-        "https://forixrpl-server.duckdns.org:3001/api/getNickname",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ address: connectedWallet.address }),
-        }
-      );
+      const response = await fetch(`https://${address}:3001/api/getNickname`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ address: connectedWallet.address }),
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -117,7 +116,7 @@ export default function Home() {
       <div id="header">
         <div style={{ display: "flex" }}>
           <div id="title">FORI</div>
-          <span style={{ marginLeft: "5px" }}>XRPL v1.0.29</span>
+          <span style={{ marginLeft: "5px" }}>XRPL v1.0.31</span>
         </div>
         <div id="auth">
           {wallet ? (

@@ -5,6 +5,7 @@ const cors = require("cors");
 const fs = require("fs");
 const mysql = require("mysql2/promise");
 const { Wallet, Client } = require("xrpl");
+const { XummSdk } = require("xumm-sdk");
 require("dotenv").config();
 
 const app = express();
@@ -30,6 +31,51 @@ const dbConfig = {
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
 };
+
+const Sdk = new XummSdk(process.env.XUMM_API_KEY, process.env.XUMM_API_SECRET);
+
+app.post("/api/xumm-login", async (req, res) => {
+  try {
+    const payload = {
+      txjson: {
+        TransactionType: "SignIn",
+      },
+    };
+
+    const xummPayload = await Sdk.payload.create(payload);
+
+    // QR 코드나 URL을 클라이언트에 전송하여 로그인 요청
+    res.json({
+      qrCode: xummPayload.refs.qr_png,
+      loginUrl: xummPayload.next.always,
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Failed to initiate XUMM login", error: error.message });
+  }
+});
+
+app.get("/api/xumm-callback", async (req, res) => {
+  const { uuid } = req.query;
+
+  try {
+    const xummPayload = await Sdk.payload.get(uuid);
+
+    if (xummPayload.meta.signed === true) {
+      const walletAddress = xummPayload.response.account;
+      // 인증이 완료되었으며, 이 시점에서 사용자의 XRP Ledger 주소를 사용해 세션을 관리할 수 있습니다.
+      res.json({ success: true, walletAddress });
+    } else {
+      res.json({ success: false, message: "User declined the request." });
+    }
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to handle XUMM callback",
+      error: error.message,
+    });
+  }
+});
 
 app.post("/api/getNickname", async (req, res) => {
   const { address } = req.body;
@@ -97,12 +143,20 @@ app.post("/api/saveNickname", async (req, res) => {
 });
 
 app.post("/api/createWallet", async (req, res) => {
-  const { network } = req.body; // 요청 본문에서 네트워크 선택 (메인넷 또는 테스트넷)
+  const { network } = req.body; // 요청 본문에서 네트워크 선택 (메인넷, 테스트넷, 데브넷)
 
-  const serverUrl =
-    network === "testnet"
-      ? "wss://s.altnet.rippletest.net:51233"
-      : "wss://s1.ripple.com";
+  let serverUrl;
+  let faucetUrl; // 데브넷과 테스트넷의 자금 지원 URL을 관리
+
+  if (network === "testnet") {
+    serverUrl = "wss://s.altnet.rippletest.net:51233";
+    faucetUrl = "https://faucet.altnet.rippletest.net/accounts"; // 테스트넷 faucet URL
+  } else if (network === "devnet") {
+    serverUrl = "wss://s.devnet.rippletest.net:51233";
+    faucetUrl = "https://faucet.devnet.rippletest.net/accounts"; // 데브넷 faucet URL
+  } else {
+    serverUrl = "wss://s1.ripple.com"; // 메인넷
+  }
 
   const client = new Client(serverUrl, {
     connectionTimeout: 10000,
@@ -115,16 +169,28 @@ app.post("/api/createWallet", async (req, res) => {
 
     let balance = "0";
 
-    if (network === "testnet") {
-      // 테스트넷 계정 생성 시 초기 자금 지원
-      const response = await client.fundWallet(wallet);
-      balance = response.balance; // 테스트넷에서 제공받은 초기 잔액
+    if (network === "testnet" || network === "devnet") {
+      // 테스트넷 또는 데브넷 계정 생성 시 초기 자금 지원
+      const faucetResponse = await fetch(faucetUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ destination: wallet.classicAddress }),
+      });
+
+      if (!faucetResponse.ok) {
+        throw new Error("Failed to fund wallet from faucet");
+      }
+
+      const faucetData = await faucetResponse.json();
+      balance = faucetData.account.balance; // 데브넷 또는 테스트넷에서 제공받은 초기 잔액
     }
 
     res.status(200).json({
       address: wallet.classicAddress,
       secret: wallet.seed,
-      balance: balance, // 초기 잔액 반환 (테스트넷의 경우 자금 지원 후 잔액)
+      balance: balance, // 초기 잔액 반환 (테스트넷 또는 데브넷의 경우 자금 지원 후 잔액)
       network, // 선택한 네트워크를 반환
     });
   } catch (error) {
@@ -137,7 +203,7 @@ app.post("/api/createWallet", async (req, res) => {
 const server = https.createServer(options, app);
 const io = new Server(server, {
   cors: {
-    origin: "https://forixrpl.vercel.app",
+    origin: ["https://forixrpl.vercel.app", "http://localhost:3000"],
     methods: ["GET", "POST"],
     credentials: true,
   },
