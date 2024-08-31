@@ -251,9 +251,11 @@ export default function Character({ nickname, socket }) {
   }, [position, direction]);
 
   const handleMouseClick = (event) => {
-    const x = event.clientX - characterSize / 2;
-    const y = Math.max(event.clientY - characterSize / 2, headerHeight);
-    setTargetPosition({ top: y, left: x });
+    if (event.target.id === "map-floor") {
+      const x = event.clientX - characterSize / 2;
+      const y = Math.max(event.clientY - characterSize / 2, headerHeight);
+      setTargetPosition({ top: y, left: x });
+    }
   };
 
   useEffect(() => {
@@ -503,5 +505,17 @@ export default function Character({ nickname, socket }) {
     );
   };
 
-  return <div>{Object.values(players).map(renderCharacter)}</div>;
+  return (
+    <div
+      id="map-floor"
+      style={{
+        position: "relative",
+        width: "100%",
+        height: "100vh",
+        backgroundColor: "#e0e0e0",
+      }}
+    >
+      {Object.values(players).map(renderCharacter)}
+    </div>
+  );
 }
