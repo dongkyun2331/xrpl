@@ -169,6 +169,15 @@ export default function WalletLogin({ onWalletConnected, onLogout, onLogin }) {
     }
   };
 
+  const handleCopyAddress = async () => {
+    try {
+      await navigator.clipboard.writeText(walletInfo.address);
+      alert("Wallet address copied to clipboard!");
+    } catch (error) {
+      console.error("Failed to copy address:", error);
+    }
+  };
+
   return (
     <div>
       {!isLoggedIn ? (
@@ -179,7 +188,9 @@ export default function WalletLogin({ onWalletConnected, onLogout, onLogin }) {
         <div style={{ display: "flex", gap: "10px" }}>
           {walletInfo ? (
             <>
-              <p>Wallet Address: {walletInfo?.address}</p>
+              <p onClick={handleCopyAddress} style={{ cursor: "pointer" }}>
+                Wallet Address: {walletInfo?.address}
+              </p>
               <p>Balance: {walletInfo?.balance} XRP</p>
             </>
           ) : (
