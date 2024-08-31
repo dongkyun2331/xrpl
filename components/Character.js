@@ -491,7 +491,6 @@ export default function Character({ nickname, socket }) {
 
   return (
     <MapFloor
-      socket={socket}
       players={players}
       setTargetPosition={setTargetPosition}
       characterSize={characterSize}

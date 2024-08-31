@@ -5,6 +5,7 @@ const cors = require("cors");
 const fs = require("fs");
 const { Wallet, Client } = require("xrpl");
 const { XummSdk } = require("xumm-sdk");
+const { RippleAPI } = require("ripple-lib");
 require("dotenv").config();
 
 const app = express();
@@ -181,6 +182,33 @@ app.post("/api/createWallet", async (req, res) => {
     res.status(500).json({ error: error.message });
   } finally {
     client.disconnect();
+  }
+});
+
+app.post("/api/sendXRP", async (req, res) => {
+  const { address, amount } = req.body;
+
+  try {
+    const payload = {
+      txjson: {
+        TransactionType: "Payment",
+        Destination: address, // 사용자가 입력한 XRP 주소
+        Amount: (amount * 1000000).toString(), // XRP 수량을 Drops 단위로 변환
+      },
+    };
+
+    const xummPayload = await Sdk.payload.create(payload);
+
+    res.json({
+      qrCode: xummPayload.refs.qr_png,
+      approvalUrl: xummPayload.next.always,
+      uuid: xummPayload.uuid,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to create XRP transaction",
+      error: error.message,
+    });
   }
 });
 

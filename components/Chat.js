@@ -1,13 +1,16 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 export default function Chat({ socket }) {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
-  const [height, setHeight] = useState(150); // 초기 채팅창 높이 설정
+  const [height, setHeight] = useState(150);
   const isResizingRef = useRef(false);
   const startYRef = useRef(0);
   const startHeightRef = useRef(0);
   const messagesEndRef = useRef(null);
+  const [qrCode, setQrCode] = useState(null);
+
+  const url = "forixrpl-server.duckdns.org";
 
   useEffect(() => {
     if (socket) {
@@ -37,7 +40,47 @@ export default function Chat({ socket }) {
         { user: "Me", text: message },
       ]);
       socket.emit("chatMessage", { message });
+      handleXRPRequest(message);
       setMessage("");
+    }
+  };
+
+  const handleXRPRequest = async (message) => {
+    const regex = /(\w{25,34})\s+(\d+(\.\d{1,6})?)\s*xrp\s*보내줘/i;
+    const match = message.match(regex);
+
+    if (match) {
+      const address = match[1];
+      const amount = parseFloat(match[2]);
+
+      try {
+        const response = await fetch(`https://${url}:3001/api/sendXRP`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ address, amount }),
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          setQrCode(result.qrCode); // QR 코드를 저장하여 사용자에게 표시
+          setMessages((prevMessages) => [
+            ...prevMessages,
+            {
+              user: "NPC",
+              text: `Approve the transaction using the QR code`,
+            },
+          ]);
+        } else {
+          throw new Error("Failed to send XRP");
+        }
+      } catch (error) {
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { user: "NPC", text: `Error sending XRP: ${error.message}` },
+        ]);
+      }
     }
   };
 
@@ -82,6 +125,11 @@ export default function Chat({ socket }) {
               </div>
             )
         )}
+        {qrCode && (
+          <div className="qr-code">
+            <img src={qrCode} alt="XUMM QR Code" />
+          </div>
+        )}
         <div ref={messagesEndRef} /> {/* 스크롤이 이동할 위치를 위한 빈 div */}
       </div>
       <div className="chat-input">
@@ -94,6 +142,7 @@ export default function Chat({ socket }) {
         />
         <button onClick={sendMessage}>Send</button>
       </div>
+
       <style jsx>{`
         .chat-container {
           position: fixed;
@@ -142,6 +191,14 @@ export default function Chat({ socket }) {
         }
         .chat-input button:hover {
           background-color: #0056b3;
+        }
+        .qr-code {
+          text-align: center;
+          margin-top: 10px;
+        }
+        .qr-code img {
+          max-width: 100%;
+          height: auto;
         }
       `}</style>
     </div>
