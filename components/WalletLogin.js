@@ -14,6 +14,8 @@ export default function WalletLogin({ onWalletConnected, onLogout, onLogin }) {
   const [qrCode, setQrCode] = useState(null);
   const [walletAddress, setWalletAddress] = useState(null);
 
+  const address = "forixrpl-server.duckdns.org";
+
   const openModal = () => {
     setModalVisible(true);
     setError(null);
@@ -82,7 +84,7 @@ export default function WalletLogin({ onWalletConnected, onLogout, onLogin }) {
 
   const initiateXummLogin = async () => {
     try {
-      const res = await fetch("http://localhost:3001/api/xumm-login", {
+      const res = await fetch(`https://${address}:3001/api/xumm-login`, {
         method: "POST",
       });
 
@@ -97,7 +99,7 @@ export default function WalletLogin({ onWalletConnected, onLogout, onLogin }) {
   const checkXummLoginStatus = async (uuid) => {
     try {
       const res = await fetch(
-        `http://localhost:3001/api/xumm-callback?uuid=${uuid}`
+        `https://${address}:3001/api/xumm-callback?uuid=${uuid}`
       );
       const data = await res.json();
 
@@ -118,15 +120,6 @@ export default function WalletLogin({ onWalletConnected, onLogout, onLogin }) {
       {!isLoggedIn ? (
         <div>
           <button onClick={openModal}>Connect Wallet</button>
-          <button onClick={initiateXummLogin}>Login with XUMM</button>
-          {qrCode && <img src={qrCode} alt="XUMM QR Code" />}
-          {loginUrl && (
-            <div>
-              <a href={loginUrl} target="_blank" rel="noopener noreferrer">
-                Or click here to login
-              </a>
-            </div>
-          )}
         </div>
       ) : (
         <div style={{ display: "flex", gap: "10px" }}>
@@ -188,6 +181,15 @@ export default function WalletLogin({ onWalletConnected, onLogout, onLogin }) {
               >
                 {loading ? "Connecting..." : "Connect Wallet"}
               </button>
+              <button onClick={initiateXummLogin}>Login with XUMM</button>
+              {qrCode && <img src={qrCode} alt="XUMM QR Code" />}
+              {loginUrl && (
+                <div>
+                  <a href={loginUrl} target="_blank" rel="noopener noreferrer">
+                    Or click here to login
+                  </a>
+                </div>
+              )}
             </div>
 
             {error && (
