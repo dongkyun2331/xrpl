@@ -38,7 +38,7 @@ app.post("/api/xumm-login", async (req, res) => {
   try {
     const payload = {
       txjson: {
-        TransactionType: "SignIn",
+        TransactionType: "SignIn", // XUMM에서 제공하는 기본 로그인 트랜잭션 타입
       },
     };
 
@@ -48,6 +48,7 @@ app.post("/api/xumm-login", async (req, res) => {
     res.json({
       qrCode: xummPayload.refs.qr_png,
       loginUrl: xummPayload.next.always,
+      uuid: xummPayload.uuid, // 이후 콜백 처리에 사용할 UUID
     });
   } catch (error) {
     res
@@ -63,9 +64,11 @@ app.get("/api/xumm-callback", async (req, res) => {
     const xummPayload = await Sdk.payload.get(uuid);
 
     if (xummPayload.meta.signed === true) {
-      const walletAddress = xummPayload.response.account;
-      // 인증이 완료되었으며, 이 시점에서 사용자의 XRP Ledger 주소를 사용해 세션을 관리할 수 있습니다.
-      res.json({ success: true, walletAddress });
+      const walletAddress = xummPayload.response.account; // 사용자의 XRPL 주소
+      const publicKey = xummPayload.response.public_key; // 사용자의 퍼블릭 키
+
+      // 이 시점에서 사용자의 퍼블릭 키를 이용해 로그인 상태를 업데이트
+      res.json({ success: true, walletAddress, publicKey });
     } else {
       res.json({ success: false, message: "User declined the request." });
     }

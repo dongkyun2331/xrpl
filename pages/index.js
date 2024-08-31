@@ -116,7 +116,7 @@ export default function Home() {
       <div id="header">
         <div style={{ display: "flex" }}>
           <div id="title">FORI</div>
-          <span style={{ marginLeft: "5px" }}>XRPL</span>
+          <span style={{ marginLeft: "5px" }}>XRPL v1.0.31</span>
         </div>
         <div id="auth">
           {wallet ? (
