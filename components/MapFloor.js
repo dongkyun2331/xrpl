@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import NPCharacter from "./NPCharacter"; // NPC 캐릭터 컴포넌트 임포트
+import React, { useEffect } from "react";
 
 export default function MapFloor({
   players,
@@ -8,14 +7,6 @@ export default function MapFloor({
   headerHeight,
   renderCharacter,
 }) {
-  const [npc, setNpc] = useState({
-    id: "npc-1",
-    x: 200,
-    y: 200,
-    nickname: "NPC",
-    isWalking: false,
-  });
-
   const handleMouseClick = (event) => {
     if (event.target.id === "map-floor") {
       const x = event.clientX - characterSize / 2;
@@ -43,7 +34,6 @@ export default function MapFloor({
       }}
     >
       {Object.values(players).map(renderCharacter)}
-      <NPCharacter x={npc.x} y={npc.y} nickname={npc.nickname} />
     </div>
   );
 }
