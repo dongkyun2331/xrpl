@@ -3,12 +3,12 @@ const https = require("https");
 const { Server } = require("socket.io");
 const cors = require("cors");
 const fs = require("fs");
-const mysql = require("mysql2/promise");
 const { Wallet, Client } = require("xrpl");
 const { XummSdk } = require("xumm-sdk");
 require("dotenv").config();
 
 const app = express();
+const NICKNAME_FILE = "./nicknames.json"; // 닉네임을 저장할 파일 경로
 
 const options = {
   key: fs.readFileSync("./privkey.pem"),
@@ -25,30 +25,37 @@ app.use(
 
 app.use(express.json());
 
-const dbConfig = {
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
+const Sdk = new XummSdk(process.env.XUMM_API_KEY, process.env.XUMM_API_SECRET);
+
+// JSON 파일에서 닉네임 데이터를 불러오는 함수
+const loadNicknames = () => {
+  if (fs.existsSync(NICKNAME_FILE)) {
+    const data = fs.readFileSync(NICKNAME_FILE);
+    return JSON.parse(data);
+  } else {
+    return {};
+  }
 };
 
-const Sdk = new XummSdk(process.env.XUMM_API_KEY, process.env.XUMM_API_SECRET);
+// JSON 파일에 닉네임 데이터를 저장하는 함수
+const saveNicknames = (nicknames) => {
+  fs.writeFileSync(NICKNAME_FILE, JSON.stringify(nicknames, null, 2));
+};
 
 app.post("/api/xumm-login", async (req, res) => {
   try {
     const payload = {
       txjson: {
-        TransactionType: "SignIn", // XUMM에서 제공하는 기본 로그인 트랜잭션 타입
+        TransactionType: "SignIn",
       },
     };
 
     const xummPayload = await Sdk.payload.create(payload);
 
-    // QR 코드나 URL을 클라이언트에 전송하여 로그인 요청
     res.json({
       qrCode: xummPayload.refs.qr_png,
       loginUrl: xummPayload.next.always,
-      uuid: xummPayload.uuid, // 이후 콜백 처리에 사용할 UUID
+      uuid: xummPayload.uuid,
     });
   } catch (error) {
     res
@@ -64,11 +71,8 @@ app.get("/api/xumm-callback", async (req, res) => {
     const xummPayload = await Sdk.payload.get(uuid);
 
     if (xummPayload.meta.signed === true) {
-      const walletAddress = xummPayload.response.account; // 사용자의 XRPL 주소
-      const publicKey = xummPayload.response.public_key; // 사용자의 퍼블릭 키
-
-      // 이 시점에서 사용자의 퍼블릭 키를 이용해 로그인 상태를 업데이트
-      res.json({ success: true, walletAddress, publicKey });
+      const walletAddress = xummPayload.response.account;
+      res.json({ success: true, walletAddress });
     } else {
       res.json({ success: false, message: "User declined the request." });
     }
@@ -88,22 +92,17 @@ app.post("/api/getNickname", async (req, res) => {
   }
 
   try {
-    const connection = await mysql.createConnection(dbConfig);
-    const [rows] = await connection.execute(
-      "SELECT nickname FROM nicknames WHERE address = ?",
-      [address]
-    );
+    const nicknames = loadNicknames();
+    const nickname = nicknames[address];
 
-    if (rows.length > 0) {
-      return res.status(200).json({ nickname: rows[0].nickname });
+    if (nickname) {
+      return res.status(200).json({ nickname });
     } else {
       return res.status(404).json({ message: "Nickname not found" });
     }
   } catch (error) {
-    console.error("Database error:", error);
-    return res
-      .status(500)
-      .json({ message: "Database error", error: error.message });
+    console.error("Error fetching nickname:", error);
+    return res.status(500).json({ message: "An unexpected error occurred." });
   }
 });
 
@@ -117,48 +116,31 @@ app.post("/api/saveNickname", async (req, res) => {
   }
 
   try {
-    const connection = await mysql.createConnection(dbConfig);
+    const nicknames = loadNicknames();
+    nicknames[address] = nickname;
+    saveNicknames(nicknames);
 
-    const [existingRows] = await connection.execute(
-      "SELECT * FROM nicknames WHERE address = ?",
-      [address]
-    );
-
-    if (existingRows.length > 0) {
-      await connection.execute(
-        "UPDATE nicknames SET nickname = ? WHERE address = ?",
-        [nickname, address]
-      );
-      return res.status(200).json({ message: "Nickname updated successfully" });
-    } else {
-      await connection.execute(
-        "INSERT INTO nicknames (address, nickname) VALUES (?, ?)",
-        [address, nickname]
-      );
-      return res.status(200).json({ message: "Nickname saved successfully" });
-    }
+    return res.status(200).json({ message: "Nickname saved successfully" });
   } catch (error) {
-    console.error("Database error:", error);
-    return res
-      .status(500)
-      .json({ message: "Database error", error: error.message });
+    console.error("Error saving nickname:", error);
+    return res.status(500).json({ message: "An unexpected error occurred." });
   }
 });
 
 app.post("/api/createWallet", async (req, res) => {
-  const { network } = req.body; // 요청 본문에서 네트워크 선택 (메인넷, 테스트넷, 데브넷)
+  const { network } = req.body;
 
   let serverUrl;
-  let faucetUrl; // 데브넷과 테스트넷의 자금 지원 URL을 관리
+  let faucetUrl;
 
   if (network === "testnet") {
     serverUrl = "wss://s.altnet.rippletest.net:51233";
-    faucetUrl = "https://faucet.altnet.rippletest.net/accounts"; // 테스트넷 faucet URL
+    faucetUrl = "https://faucet.altnet.rippletest.net/accounts";
   } else if (network === "devnet") {
     serverUrl = "wss://s.devnet.rippletest.net:51233";
-    faucetUrl = "https://faucet.devnet.rippletest.net/accounts"; // 데브넷 faucet URL
+    faucetUrl = "https://faucet.devnet.rippletest.net/accounts";
   } else {
-    serverUrl = "wss://s1.ripple.com"; // 메인넷
+    serverUrl = "wss://s1.ripple.com";
   }
 
   const client = new Client(serverUrl, {
@@ -173,7 +155,6 @@ app.post("/api/createWallet", async (req, res) => {
     let balance = "0";
 
     if (network === "testnet" || network === "devnet") {
-      // 테스트넷 또는 데브넷 계정 생성 시 초기 자금 지원
       const faucetResponse = await fetch(faucetUrl, {
         method: "POST",
         headers: {
@@ -187,14 +168,14 @@ app.post("/api/createWallet", async (req, res) => {
       }
 
       const faucetData = await faucetResponse.json();
-      balance = faucetData.account.balance; // 데브넷 또는 테스트넷에서 제공받은 초기 잔액
+      balance = faucetData.account.balance;
     }
 
     res.status(200).json({
       address: wallet.classicAddress,
       secret: wallet.seed,
-      balance: balance, // 초기 잔액 반환 (테스트넷 또는 데브넷의 경우 자금 지원 후 잔액)
-      network, // 선택한 네트워크를 반환
+      balance: balance,
+      network,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
