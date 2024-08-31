@@ -81,6 +81,9 @@ export default function WalletLogin({ onWalletConnected, onLogout, onLogin }) {
     setWalletInfo(null);
     setIsLoggedIn(false);
     if (onLogout) onLogout();
+
+    // 페이지 새로고침
+    window.location.reload();
   };
 
   const initiateXummLogin = async () => {
