@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import MapFloor from "./MapFloor"; // 분리된 MapFloor 컴포넌트 임포트
 
 export default function Character({ nickname, socket }) {
   const [position, setPosition] = useState({ top: 0, left: 0 });
@@ -250,22 +251,6 @@ export default function Character({ nickname, socket }) {
     };
   }, [position, direction]);
 
-  const handleMouseClick = (event) => {
-    if (event.target.id === "map-floor") {
-      const x = event.clientX - characterSize / 2;
-      const y = Math.max(event.clientY - characterSize / 2, headerHeight);
-      setTargetPosition({ top: y, left: x });
-    }
-  };
-
-  useEffect(() => {
-    window.addEventListener("click", handleMouseClick);
-
-    return () => {
-      window.removeEventListener("click", handleMouseClick);
-    };
-  }, []);
-
   const getArmLegTransform = (limb, step, isWalking) => {
     const movement = isWalking
       ? {
@@ -341,7 +326,6 @@ export default function Character({ nickname, socket }) {
             <>
               <circle cx="25" cy="15" r="10" fill="#FFD700" />
               <circle cx="20" cy="18" r="2" fill="#000" />
-              <circle cx="30" cy="18" r="2" fill="#000" />
               <rect x="18" y="25" width="14" height="20" fill="#1E90FF" />
               <rect
                 x="10"
@@ -506,16 +490,13 @@ export default function Character({ nickname, socket }) {
   };
 
   return (
-    <div
-      id="map-floor"
-      style={{
-        position: "relative",
-        width: "100%",
-        height: "100vh",
-        backgroundColor: "#e0e0e0",
-      }}
-    >
-      {Object.values(players).map(renderCharacter)}
-    </div>
+    <MapFloor
+      socket={socket}
+      players={players}
+      setTargetPosition={setTargetPosition}
+      characterSize={characterSize}
+      headerHeight={headerHeight}
+      renderCharacter={renderCharacter}
+    />
   );
 }
