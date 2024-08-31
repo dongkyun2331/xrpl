@@ -69,7 +69,7 @@ export default function Chat({ socket }) {
             ...prevMessages,
             {
               user: "NPC",
-              text: `Approve the transaction using the QR code`,
+              text: `QR 코드를 사용하여 트랜잭션을 승인하세요`,
             },
           ]);
         } else {
