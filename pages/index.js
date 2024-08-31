@@ -138,7 +138,7 @@ export default function Home({ markdown }) {
         </div>
       </div>
       {showReadme && markdown && (
-        <div className="markdown-container">
+        <div className="markdown-container" className="markdown-container" style={{ overflowY: "scroll" }}>
           <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdown}</ReactMarkdown>
         </div>
       )}
