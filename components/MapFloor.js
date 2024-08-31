@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import NPCharacter from "./NPCharacter"; // NPC 캐릭터 컴포넌트 임포트
 
 export default function MapFloor({
   players,
@@ -42,7 +43,7 @@ export default function MapFloor({
       }}
     >
       {Object.values(players).map(renderCharacter)}
-      {renderCharacter(npc)} {/* NPC 캐릭터 추가 */}
+      <NPCharacter x={npc.x} y={npc.y} nickname={npc.nickname} />
     </div>
   );
 }
