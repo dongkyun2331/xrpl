@@ -30,16 +30,11 @@ export default function Chat({ socket }) {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages]);
+  }, [messages, qrCode]);
 
   const sendMessage = () => {
     if (message.trim() !== "") {
       socket.emit("sendMessage", message);
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        { user: "Me", text: message },
-      ]);
-      socket.emit("chatMessage", { message });
       handleXRPRequest(message);
       setMessage("");
     }
@@ -112,19 +107,52 @@ export default function Chat({ socket }) {
     };
   }, []);
 
+  const handleCopyCode = async (code) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      alert("Code copied to clipboard!");
+    } catch (error) {
+      console.error("Failed to copy code:", error);
+    }
+  };
+
+  const renderMessage = (msg, index) => {
+    // 코드 블록 감지
+    const codeBlockRegex = /```([\s\S]+?)```/g;
+    const parts = msg.text.split(codeBlockRegex);
+
+    return (
+      <div key={index} className="chat-message">
+        {msg.user && <strong>{msg.user}: </strong>}
+        {parts.map((part, i) =>
+          i % 2 === 1 ? (
+            <code
+              key={i}
+              onClick={() => handleCopyCode(part)}
+              style={{
+                display: "block",
+                backgroundColor: "#f4f4f4",
+                padding: "10px",
+                borderRadius: "5px",
+                margin: "10px 0",
+                cursor: "pointer",
+              }}
+            >
+              {part}
+            </code>
+          ) : (
+            <span key={i}>{part}</span>
+          )
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="chat-container" style={{ height: `${height}px` }}>
       <div className="resize-handle" onMouseDown={startResizing}></div>
       <div className="chat-messages">
-        {messages.map(
-          (msg, index) =>
-            msg.user !== "Me" && (
-              <div key={index} className="chat-message">
-                <strong>{msg.user}: </strong>
-                {msg.text}
-              </div>
-            )
-        )}
+        {messages.map((msg, index) => renderMessage(msg, index))}
         {qrCode && (
           <div className="qr-code">
             <img src={qrCode} alt="XUMM QR Code" />
@@ -195,6 +223,7 @@ export default function Chat({ socket }) {
         .qr-code {
           text-align: center;
           margin-top: 10px;
+          margin-bottom: 10px;
         }
         .qr-code img {
           max-width: 100%;
