@@ -10,7 +10,7 @@ export default function Character({ nickname, socket }) {
   const [players, setPlayers] = useState({});
   const walkIntervalRef = useRef(null);
   const characterSize = 50; // 캐릭터 크기
-  const headerHeight = 100; // 헤더 높이 (header 영역을 넘지 못하게 하기 위함)
+  const headerHeight = 0; // 헤더 높이 (header 영역을 넘지 못하게 하기 위함)
 
   useEffect(() => {
     const centerX = window.innerWidth / 2 - characterSize / 2;
@@ -36,7 +36,7 @@ export default function Character({ nickname, socket }) {
             ...prev,
             [player.id]: { ...player, isWalking: false },
           }));
-        }, 200); // 잠시 후 걷기 동작 해제
+        }, 100); // 잠시 후 걷기 동작 해제
       });
 
       socket.on("playerDisconnected", (playerId) => {

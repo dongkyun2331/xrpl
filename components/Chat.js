@@ -165,7 +165,7 @@ export default function Chat({ socket }) {
             </button>
           </div>
         )}
-        <div ref={messagesEndRef} /> {/* 스크롤이 이동할 위치를 위한 빈 div */}
+        <div ref={messagesEndRef} />
       </div>
       <div className="chat-input">
         <input
