@@ -68,7 +68,7 @@ export default function Chat({ socket }) {
           setMessages((prevMessages) => [
             ...prevMessages,
             {
-              user: "NPC",
+              user: "System",
               text: `QR 코드를 사용하여 트랜잭션을 승인하세요`,
             },
           ]);
@@ -78,7 +78,7 @@ export default function Chat({ socket }) {
       } catch (error) {
         setMessages((prevMessages) => [
           ...prevMessages,
-          { user: "NPC", text: `Error sending XRP: ${error.message}` },
+          { user: "System", text: `Error sending XRP: ${error.message}` },
         ]);
       }
     }
