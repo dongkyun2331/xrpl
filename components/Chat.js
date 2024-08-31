@@ -107,6 +107,10 @@ export default function Chat({ socket }) {
     };
   }, []);
 
+  const handleCloseQrCode = () => {
+    setQrCode(null); // QR 코드를 닫기 위해 상태를 null로 설정
+  };
+
   const handleCopyCode = async (code) => {
     try {
       await navigator.clipboard.writeText(code);
@@ -156,6 +160,9 @@ export default function Chat({ socket }) {
         {qrCode && (
           <div className="qr-code">
             <img src={qrCode} alt="XUMM QR Code" />
+            <button onClick={handleCloseQrCode} className="close-qr-code">
+              Close
+            </button>
           </div>
         )}
         <div ref={messagesEndRef} /> {/* 스크롤이 이동할 위치를 위한 빈 div */}
@@ -224,10 +231,25 @@ export default function Chat({ socket }) {
           text-align: center;
           margin-top: 10px;
           margin-bottom: 10px;
+          position: relative;
         }
         .qr-code img {
           max-width: 100%;
           height: auto;
+        }
+        .close-qr-code {
+          position: absolute;
+          top: 5px;
+          right: 5px;
+          background-color: red;
+          color: white;
+          border: none;
+          padding: 5px 10px;
+          cursor: pointer;
+          border-radius: 5px;
+        }
+        .close-qr-code:hover {
+          background-color: darkred;
         }
       `}</style>
     </div>
