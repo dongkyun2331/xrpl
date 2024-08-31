@@ -325,7 +325,8 @@ export default function Character({ nickname, socket }) {
           return (
             <>
               <circle cx="25" cy="15" r="10" fill="#FFD700" />
-              <circle cx="20" cy="18" r="2" fill="#000" />
+              <circle cx="20" cy="18" r="2" fill="#000" /> {/* 왼쪽 눈 */}
+              <circle cx="30" cy="18" r="2" fill="#000" /> {/* 오른쪽 눈 */}
               <rect x="18" y="25" width="14" height="20" fill="#1E90FF" />
               <rect
                 x="10"
