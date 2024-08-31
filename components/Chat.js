@@ -46,7 +46,7 @@ export default function Chat({ socket }) {
   };
 
   const handleXRPRequest = async (message) => {
-    const regex = /(\w{25,34})\s+(\d+(\.\d{1,6})?)\s*xrp\s*보내줘/i;
+    const regex = /(\w{25,34})\s+(\d+(\.\d{1,6})?)\s*xrp/i;
     const match = message.match(regex);
 
     if (match) {
