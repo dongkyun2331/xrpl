@@ -1,4 +1,9 @@
+// pages/index.js
 import { useState, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import path from "path";
+import fs from "fs";
 import io from "socket.io-client";
 import CreateWalletButton from "../components/CreateWalletButton";
 import WalletLogin from "../components/WalletLogin";
@@ -58,22 +63,24 @@ const useSocket = (url) => {
   return socket;
 };
 
-export default function Home() {
+export default function Home({ markdown }) {
   const socket = useSocket(`https://${address}:3001`);
-  const [wallet, setWallet] = useState(null); // 지갑 정보 상태
+  const [wallet, setWallet] = useState(null);
   const [nickname, setNickname] = useState("");
   const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
-  const [showWalletInfo, setShowWalletInfo] = useState(false); // WalletInfo 표시 여부
+  const [showWalletInfo, setShowWalletInfo] = useState(false);
+  const [showReadme, setShowReadme] = useState(true);
 
   const handleWalletCreated = (newWallet) => {
-    setWallet(newWallet); // 새 지갑 생성 시 지갑 정보 설정
-    setShowWalletInfo(true); // 지갑 생성 후 WalletInfo 표시
+    setWallet(newWallet);
+    setShowWalletInfo(true);
+    setShowReadme(false); // 지갑 생성 후 "README" 숨김
   };
 
   const handleWalletConnected = async (connectedWallet) => {
-    setWallet(connectedWallet); // 기존 지갑 연결 시 지갑 정보 설정
+    setWallet(connectedWallet);
+    setShowReadme(false); // 지갑 연결 후 "README" 숨김
 
-    // 로그인 시 닉네임 불러오기
     try {
       const response = await fetch(`https://${address}:3001/api/getNickname`, {
         method: "POST",
@@ -85,9 +92,9 @@ export default function Home() {
 
       if (response.ok) {
         const data = await response.json();
-        setNickname(data.nickname); // 닉네임 설정
+        setNickname(data.nickname);
       } else {
-        setNickname(""); // 닉네임 없음
+        setNickname("");
       }
     } catch (error) {
       console.error("Error fetching nickname:", error);
@@ -97,7 +104,8 @@ export default function Home() {
   const handleLogout = () => {
     setWallet(null);
     setNickname("");
-    setShowWalletInfo(false); // 로그아웃 시 WalletInfo 숨김
+    setShowWalletInfo(false);
+    setShowReadme(true); // 로그아웃 시 "README" 다시 표시
   };
 
   const handleNicknameClick = () => {
@@ -129,6 +137,11 @@ export default function Home() {
           )}
         </div>
       </div>
+      {showReadme && markdown && (
+        <div className="markdown-container">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdown}</ReactMarkdown>
+        </div>
+      )}
       {wallet && (
         <>
           <Character nickname={nickname} socket={socket} />
@@ -149,6 +162,52 @@ export default function Home() {
           <Chat socket={socket} /> {/* 로그인 후 채팅 기능 표시 */}
         </>
       )}
+      <style jsx>{`
+        .markdown-container {
+          padding: 20px;
+          background-color: #f8f8f8;
+          border-radius: 10px;
+          margin: 20px;
+          max-width: 800px;
+          margin-left: auto;
+          margin-right: auto;
+        }
+        .markdown-container h1,
+        .markdown-container h2,
+        .markdown-container h3 {
+          margin-top: 20px;
+        }
+        .markdown-container p {
+          margin: 10px 0;
+        }
+        .markdown-container ul {
+          list-style-type: disc;
+          margin-left: 20px;
+        }
+        .markdown-container code {
+          background-color: #eaeaea;
+          padding: 2px 4px;
+          border-radius: 4px;
+        }
+        .markdown-container pre {
+          background-color: #333;
+          color: #fff;
+          padding: 10px;
+          border-radius: 10px;
+          overflow-x: auto;
+        }
+      `}</style>
     </div>
   );
+}
+
+export async function getStaticProps() {
+  const filePath = path.join(process.cwd(), "README.md");
+  const markdown = fs.readFileSync(filePath, "utf8");
+
+  return {
+    props: {
+      markdown,
+    },
+  };
 }

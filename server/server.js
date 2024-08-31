@@ -43,6 +43,16 @@ const saveNicknames = (nicknames) => {
   fs.writeFileSync(NICKNAME_FILE, JSON.stringify(nicknames, null, 2));
 };
 
+app.get("/api/readme", (req, res) => {
+  const readmePath = path.join(__dirname, "README.md");
+  fs.readFile(readmePath, "utf8", (err, data) => {
+    if (err) {
+      return res.status(500).send("Could not read README.md file.");
+    }
+    res.send(data);
+  });
+});
+
 app.post("/api/xumm-login", async (req, res) => {
   try {
     const payload = {

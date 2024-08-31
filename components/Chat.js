@@ -64,7 +64,7 @@ export default function Chat({ socket }) {
             ...prevMessages,
             {
               user: "System",
-              text: `QR 코드를 사용하여 트랜잭션을 승인하세요`,
+              text: `Please approve the transaction using the QR code.`,
             },
           ]);
         } else {
