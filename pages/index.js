@@ -132,13 +132,16 @@ export default function Home({ markdown }) {
           ) : (
             <>
               <WalletLogin onWalletConnected={handleWalletConnected} />
-              <CreateWalletButton onWalletCreated={handleWalletCreated} />
+              {/* <CreateWalletButton onWalletCreated={handleWalletCreated} /> */}
             </>
           )}
         </div>
       </div>
       {showReadme && markdown && (
-        <div className="markdown-container" className="markdown-container" style={{ overflowY: "scroll" }}>
+        <div
+          className="markdown-container"
+          style={{ overflowY: "scroll", height: "80vh" }}
+        >
           <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdown}</ReactMarkdown>
         </div>
       )}

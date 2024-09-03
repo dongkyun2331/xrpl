@@ -210,7 +210,7 @@ export default function WalletLogin({ onWalletConnected, onLogout, onLogin }) {
               X
             </button>
 
-            <div style={{ marginBottom: "20px" }}>
+            {/* <div style={{ marginBottom: "20px" }}>
               <select
                 value={network}
                 onChange={(e) => setNetwork(e.target.value)}
@@ -220,10 +220,10 @@ export default function WalletLogin({ onWalletConnected, onLogout, onLogin }) {
                 <option value="devnet">Devnet</option>
                 <option value="mainnet">Mainnet</option>
               </select>
-            </div>
+            </div> */}
 
             <div style={{ marginBottom: "20px" }}>
-              <input
+              {/* <input
                 type="text"
                 placeholder="Enter Secret Key"
                 value={secretKey}
@@ -234,8 +234,8 @@ export default function WalletLogin({ onWalletConnected, onLogout, onLogin }) {
                   padding: "10px",
                   marginBottom: "10px",
                 }}
-              />
-              <button
+              /> */}
+              {/* <button
                 onClick={handleConnectWallet}
                 disabled={loading || !secretKey}
                 style={{
@@ -248,7 +248,7 @@ export default function WalletLogin({ onWalletConnected, onLogout, onLogin }) {
                 }}
               >
                 {loading ? "Connecting..." : "Connect Wallet"}
-              </button>
+              </button> */}
               <button onClick={initiateXummLogin}>Login with XUMM</button>
               {qrCode && <img src={qrCode} alt="XUMM QR Code" />}
               {loginUrl && (
