@@ -5,15 +5,16 @@ import remarkGfm from "remark-gfm";
 import path from "path";
 import fs from "fs";
 import io from "socket.io-client";
-import CreateWalletButton from "../components/CreateWalletButton";
+// import CreateWalletButton from "../components/CreateWalletButton";
 import WalletLogin from "../components/WalletLogin";
 import Character from "../components/Character";
 import WalletInfo from "../components/WalletInfo";
 import FloatingButton from "../components/FloatingButton";
 import NicknameModal from "../components/NicknameModal";
 import Chat from "../components/Chat";
+import config from "./config";
 
-const address = "forixrpl-server.duckdns.org";
+const { ipAddress } = config;
 
 // 소켓을 초기화합니다.
 const useSocket = (url) => {
@@ -64,7 +65,7 @@ const useSocket = (url) => {
 };
 
 export default function Home({ markdown }) {
-  const socket = useSocket(`https://${address}:3001`);
+  const socket = useSocket(`https://${ipAddress}:3001`);
   const [wallet, setWallet] = useState(null);
   const [nickname, setNickname] = useState("");
   const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
@@ -82,13 +83,16 @@ export default function Home({ markdown }) {
     setShowReadme(false); // 지갑 연결 후 "README" 숨김
 
     try {
-      const response = await fetch(`https://${address}:3001/api/getNickname`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ address: connectedWallet.address }),
-      });
+      const response = await fetch(
+        `https://${ipAddress}:3001/api/getNickname`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ address: connectedWallet.address }),
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();

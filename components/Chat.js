@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import config from "@/pages/config";
 
 export default function Chat({ socket }) {
   const [message, setMessage] = useState("");
@@ -10,7 +11,7 @@ export default function Chat({ socket }) {
   const messagesEndRef = useRef(null);
   const [qrCode, setQrCode] = useState(null);
 
-  const url = "forixrpl-server.duckdns.org";
+  const { ipAddress } = config;
 
   useEffect(() => {
     if (socket) {
@@ -49,7 +50,7 @@ export default function Chat({ socket }) {
       const amount = parseFloat(match[2]);
 
       try {
-        const response = await fetch(`https://${url}:3001/api/sendXRP`, {
+        const response = await fetch(`https://${ipAddress}:3001/api/sendXRP`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

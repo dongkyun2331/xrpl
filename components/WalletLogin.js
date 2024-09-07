@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Wallet, Client } from "xrpl";
+import config from "@/pages/config";
 
 export default function WalletLogin({ onWalletConnected, onLogout, onLogin }) {
   const [modalVisible, setModalVisible] = useState(false);
@@ -15,7 +16,7 @@ export default function WalletLogin({ onWalletConnected, onLogout, onLogin }) {
   const [walletAddress, setWalletAddress] = useState(null);
   const [uuid, setUuid] = useState(null); // UUID 상태 추가
 
-  const address = "forixrpl-server.duckdns.org";
+  const { ipAddress } = config;
 
   const openModal = () => {
     setModalVisible(true);
@@ -88,7 +89,7 @@ export default function WalletLogin({ onWalletConnected, onLogout, onLogin }) {
 
   const initiateXummLogin = async () => {
     try {
-      const res = await fetch(`https://${address}:3001/api/xumm-login`, {
+      const res = await fetch(`https://${ipAddress}:3001/api/xumm-login`, {
         method: "POST",
       });
 
@@ -115,7 +116,7 @@ export default function WalletLogin({ onWalletConnected, onLogout, onLogin }) {
   const checkXummLoginStatus = async (uuid) => {
     try {
       const res = await fetch(
-        `https://${address}:3001/api/xumm-callback?uuid=${uuid}`
+        `https://${ipAddress}:3001/api/xumm-callback?uuid=${uuid}`
       );
       const data = await res.json();
 

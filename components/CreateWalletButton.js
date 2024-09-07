@@ -1,15 +1,16 @@
 import { useState } from "react";
+import config from "@/pages/config";
 
 export default function CreateWalletButton({ onWalletCreated }) {
   const [loading, setLoading] = useState(false);
   const [network, setNetwork] = useState("Testnet");
 
-  const address = "forixrpl-server.duckdns.org";
+  const { ipAddress } = config;
 
   const handleCreateWallet = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`https://${address}:3001/api/createWallet`, {
+      const res = await fetch(`https://${ipAddress}:3001/api/createWallet`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
