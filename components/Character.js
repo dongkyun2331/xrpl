@@ -17,9 +17,6 @@ export default function Character({ nickname, socket }) {
     const centerY = window.innerHeight / 2 - characterSize / 2;
     setPosition({ top: Math.max(centerY, headerHeight), left: centerX });
 
-    // 처음 로딩 시 아래 방향으로 자동 이동
-    moveCharacter("ArrowDown", true);
-
     if (socket) {
       socket.on("currentPlayers", (players) => {
         setPlayers(players);
