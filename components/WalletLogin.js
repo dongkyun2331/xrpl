@@ -29,55 +29,6 @@ export default function WalletLogin({ onWalletConnected, onLogout, onLogin }) {
     setError(null);
   };
 
-  const handleConnectWallet = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const wallet = Wallet.fromSeed(secretKey);
-
-      const serverUrl =
-        network === "testnet"
-          ? "wss://s.altnet.rippletest.net:51233"
-          : network === "devnet"
-          ? "wss://s.devnet.rippletest.net:51233"
-          : "wss://s1.ripple.com";
-
-      const client = new Client(serverUrl, {
-        connectionTimeout: 10000,
-      });
-      await client.connect();
-
-      const response = await client.request({
-        command: "account_info",
-        account: wallet.classicAddress,
-        ledger_index: "validated",
-      });
-
-      if (response.result.account_data) {
-        const connectedWallet = {
-          address: wallet.classicAddress,
-          balance: response.result.account_data.Balance / 1000000,
-          secret: secretKey,
-          network,
-        };
-
-        setWalletInfo(connectedWallet);
-        setIsLoggedIn(true);
-        onWalletConnected(connectedWallet);
-        closeModal();
-      } else {
-        throw new Error("Account not found or not activated.");
-      }
-
-      client.disconnect();
-    } catch (err) {
-      setError("Failed to connect to wallet: " + err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleLogout = () => {
     setWalletInfo(null);
     setIsLoggedIn(false);
@@ -211,45 +162,7 @@ export default function WalletLogin({ onWalletConnected, onLogout, onLogin }) {
               X
             </button>
 
-            {/* <div style={{ marginBottom: "20px" }}>
-              <select
-                value={network}
-                onChange={(e) => setNetwork(e.target.value)}
-                disabled={loading}
-              >
-                <option value="testnet">Testnet</option>
-                <option value="devnet">Devnet</option>
-                <option value="mainnet">Mainnet</option>
-              </select>
-            </div> */}
-
             <div style={{ marginBottom: "20px" }}>
-              {/* <input
-                type="text"
-                placeholder="Enter Secret Key"
-                value={secretKey}
-                onChange={(e) => setSecretKey(e.target.value)}
-                disabled={loading}
-                style={{
-                  width: "94%",
-                  padding: "10px",
-                  marginBottom: "10px",
-                }}
-              /> */}
-              {/* <button
-                onClick={handleConnectWallet}
-                disabled={loading || !secretKey}
-                style={{
-                  width: "100%",
-                  padding: "10px",
-                  backgroundColor: "#4CAF50",
-                  color: "white",
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
-                {loading ? "Connecting..." : "Connect Wallet"}
-              </button> */}
               <button onClick={initiateXummLogin}>Login with XUMM</button>
               {qrCode && <img src={qrCode} alt="XUMM QR Code" />}
               {loginUrl && (
