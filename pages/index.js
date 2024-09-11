@@ -136,7 +136,10 @@ export default function Home({ markdown }) {
           ) : (
             <>
               <WalletLogin onWalletConnected={handleWalletConnected} />
-              {/* <CreateWalletButton onWalletCreated={handleWalletCreated} /> */}
+              <button onClick={handleNicknameClick}>Set Nickname</button>
+              {isNicknameModalOpen && (
+                <NicknameModal onClose={handleNicknameClose} wallet={wallet} />
+              )}
             </>
           )}
         </div>
@@ -163,9 +166,6 @@ export default function Home({ markdown }) {
             />
           )}
           <FloatingButton onNicknameClick={handleNicknameClick} />
-          {isNicknameModalOpen && (
-            <NicknameModal onClose={handleNicknameClose} wallet={wallet} />
-          )}
           <Chat socket={socket} /> {/* 로그인 후 채팅 기능 표시 */}
         </>
       )}

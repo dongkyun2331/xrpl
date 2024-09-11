@@ -3,6 +3,7 @@ import config from "@/pages/config";
 
 export default function NicknameModal({ onClose, wallet }) {
   const [nickname, setNickname] = useState("");
+  const [walletAddress, setWalletAddress] = useState(wallet?.address || ""); // 지갑 주소 상태 추가
   const [error, setError] = useState("");
 
   const { ipAddress } = config;
@@ -17,7 +18,7 @@ export default function NicknameModal({ onClose, wallet }) {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ nickname, address: wallet?.address }),
+          body: JSON.stringify({ nickname, address: walletAddress }), // 지갑 주소 전송
         }
       );
 
@@ -36,16 +37,23 @@ export default function NicknameModal({ onClose, wallet }) {
   return (
     <div className="modal">
       <div className="modal-content">
-        <h2>Set Nickname</h2>
         <input
           type="text"
           value={nickname}
           onChange={(e) => setNickname(e.target.value)}
           placeholder="Enter your nickname"
         />
-        <button onClick={handleSave}>Save</button>
-        {error && <p className="error">{error}</p>}
-        <button onClick={() => onClose()}>Cancel</button>
+        <input
+          type="text"
+          value={walletAddress}
+          onChange={(e) => setWalletAddress(e.target.value)} // 지갑 주소 입력 필드 추가
+          placeholder="Enter your Address"
+        />
+        <div>
+          <button onClick={handleSave}>Save</button>
+          {error && <p className="error">{error}</p>}
+          <button onClick={() => onClose()}>Cancel</button>
+        </div>
       </div>
     </div>
   );

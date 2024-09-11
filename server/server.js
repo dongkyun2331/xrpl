@@ -138,63 +138,6 @@ app.post("/api/saveNickname", async (req, res) => {
   }
 });
 
-app.post("/api/createWallet", async (req, res) => {
-  const { network } = req.body;
-
-  let serverUrl;
-  let faucetUrl;
-
-  if (network === "testnet") {
-    serverUrl = "wss://s.altnet.rippletest.net:51233";
-    faucetUrl = "https://faucet.altnet.rippletest.net/accounts";
-  } else if (network === "devnet") {
-    serverUrl = "wss://s.devnet.rippletest.net:51233";
-    faucetUrl = "https://faucet.devnet.rippletest.net/accounts";
-  } else {
-    serverUrl = "wss://s1.ripple.com";
-  }
-
-  const client = new Client(serverUrl, {
-    connectionTimeout: 10000,
-  });
-
-  try {
-    await client.connect();
-
-    const wallet = Wallet.generate();
-
-    let balance = "0";
-
-    if (network === "testnet" || network === "devnet") {
-      const faucetResponse = await fetch(faucetUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ destination: wallet.classicAddress }),
-      });
-
-      if (!faucetResponse.ok) {
-        throw new Error("Failed to fund wallet from faucet");
-      }
-
-      const faucetData = await faucetResponse.json();
-      balance = faucetData.account.balance;
-    }
-
-    res.status(200).json({
-      address: wallet.classicAddress,
-      secret: wallet.seed,
-      balance: balance,
-      network,
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  } finally {
-    client.disconnect();
-  }
-});
-
 app.post("/api/sendXRP", async (req, res) => {
   const { address, amount } = req.body;
 

@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 
-export default function FloatingButton({ onNicknameClick }) {
+export default function FloatingButton({}) {
   const [isOpen, setIsOpen] = useState(false);
   const [position, setPosition] = useState({ top: 110, left: 10 });
   const [dragging, setDragging] = useState(false);
@@ -43,11 +43,7 @@ export default function FloatingButton({ onNicknameClick }) {
       >
         +
       </button>
-      {isOpen && (
-        <div className="floating-menu">
-          <button onClick={onNicknameClick}>Set Nickname</button>
-        </div>
-      )}
+      {isOpen && <div className="floating-menu"></div>}
       <style jsx>{`
         .floating-container {
           position: fixed;
