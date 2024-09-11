@@ -3,7 +3,6 @@ const https = require("https");
 const { Server } = require("socket.io");
 const cors = require("cors");
 const fs = require("fs");
-const { Wallet, Client } = require("xrpl");
 const { XummSdk } = require("xumm-sdk");
 
 require("dotenv").config();
