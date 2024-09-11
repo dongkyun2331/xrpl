@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Wallet, Client } from "xrpl";
+import { Client } from "xrpl";
 import config from "@/pages/config";
 
 export default function WalletLogin({ onWalletConnected, onLogout, onLogin }) {

@@ -5,7 +5,7 @@ const cors = require("cors");
 const fs = require("fs");
 const { Wallet, Client } = require("xrpl");
 const { XummSdk } = require("xumm-sdk");
-const { RippleAPI } = require("ripple-lib");
+
 require("dotenv").config();
 
 const app = express();
