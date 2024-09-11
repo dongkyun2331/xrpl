@@ -1,5 +1,5 @@
 const config = {
-  ipAddress: "forixrpl-server.duckdns.org",
+  ipAddress: "localhost",
 };
 
 export default config;
